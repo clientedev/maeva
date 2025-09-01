@@ -104,7 +104,7 @@ def add_property():
     # Handle file uploads
     if 'image' in request.files:
         file = request.files['image']
-        if file and file.filename != '' and allowed_file(file.filename):
+        if file and file.filename and file.filename != '' and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             unique_filename = f"{uuid.uuid4()}_{filename}"
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
@@ -112,7 +112,7 @@ def add_property():
     
     if 'video' in request.files:
         file = request.files['video']
-        if file and file.filename != '' and allowed_file(file.filename):
+        if file and file.filename and file.filename != '' and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             unique_filename = f"{uuid.uuid4()}_{filename}"
             video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
@@ -194,7 +194,7 @@ def add_post():
     # Handle file uploads
     if 'image' in request.files:
         file = request.files['image']
-        if file and file.filename != '' and allowed_file(file.filename):
+        if file and file.filename and file.filename != '' and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             unique_filename = f"{uuid.uuid4()}_{filename}"
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
@@ -202,7 +202,7 @@ def add_post():
     
     if 'video' in request.files:
         file = request.files['video']
-        if file and file.filename != '' and allowed_file(file.filename):
+        if file and file.filename and file.filename != '' and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             unique_filename = f"{uuid.uuid4()}_{filename}"
             video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
