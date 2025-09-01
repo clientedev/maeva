@@ -37,6 +37,18 @@ def gallery():
 def contact():
     return render_template('contact.html')
 
+@app.route('/posts')
+def posts():
+    all_posts = Post.query.order_by(Post.created_at.desc()).all()
+    return render_template('posts.html', posts=all_posts)
+
+@app.route('/post/<int:post_id>')
+def view_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    # Get other posts for related posts section
+    related_posts = Post.query.filter(Post.id != post_id).order_by(Post.created_at.desc()).limit(3).all()
+    return render_template('post.html', post=post, related_posts=related_posts)
+
 @app.route('/admin-login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
