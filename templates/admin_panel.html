@@ -21,6 +21,12 @@
                     <a href="#add-property" class="nav-link" data-section="add-property">
                         <i class="fas fa-plus me-2"></i>Adicionar Propriedade
                     </a>
+                    <a href="#posts" class="nav-link" data-section="posts">
+                        <i class="fas fa-newspaper me-2"></i>Posts
+                    </a>
+                    <a href="#add-post" class="nav-link" data-section="add-post">
+                        <i class="fas fa-plus me-2"></i>Adicionar Post
+                    </a>
                     <a href="{{ url_for('admin_logout') }}" class="nav-link text-danger">
                         <i class="fas fa-sign-out-alt me-2"></i>Logout
                     </a>
@@ -175,6 +181,113 @@
                             <div class="text-center">
                                 <button type="submit" class="btn btn-luxury-gold btn-lg">
                                     <i class="fas fa-save me-2"></i>Salvar Propriedade
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Posts List -->
+                <div id="posts-section" class="admin-section-content" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="luxury-heading">Posts Cadastrados</h2>
+                        <button class="btn btn-luxury-gold" onclick="showSection('add-post')">
+                            <i class="fas fa-plus me-1"></i>Novo Post
+                        </button>
+                    </div>
+                    
+                    <div class="properties-grid">
+                        {% if posts %}
+                            {% for post in posts %}
+                            <div class="admin-property-card">
+                                {% if post.image_path %}
+                                <div class="property-image-admin">
+                                    <img src="{{ url_for('uploaded_file', filename=post.image_path.split('/')[-1]) }}" 
+                                         alt="{{ post.title }}">
+                                </div>
+                                {% endif %}
+                                
+                                <div class="property-info">
+                                    <h5 class="property-title-admin">{{ post.title }}</h5>
+                                    
+                                    {% if post.featured %}
+                                    <span class="badge luxury-badge mb-2">Destaque</span>
+                                    {% endif %}
+                                    
+                                    {% if post.content %}
+                                    <p class="property-meta"><strong>Conteúdo:</strong> {{ post.content[:100] }}...</p>
+                                    {% endif %}
+                                    
+                                    <p class="property-meta">
+                                        <strong>Criado:</strong> {{ post.created_at.strftime('%d/%m/%Y') }}
+                                    </p>
+                                    
+                                    <div class="property-actions">
+                                        <a href="{{ url_for('delete_post', post_id=post.id) }}" 
+                                           class="btn btn-danger btn-sm"
+                                           onclick="return confirm('Tem certeza que deseja excluir este post?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-newspaper fa-3x text-white-50 mb-3"></i>
+                                <h4 class="text-white-50">Nenhum post cadastrado</h4>
+                                <p class="text-white-50">Adicione seu primeiro post usando o botão acima.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Add Post Form -->
+                <div id="add-post-section" class="admin-section-content" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="luxury-heading">Adicionar Novo Post</h2>
+                    </div>
+                    
+                    <div class="admin-form-wrapper">
+                        <form method="POST" action="{{ url_for('add_post') }}" enctype="multipart/form-data" class="admin-form">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="post-title" class="form-label text-white">Título *</label>
+                                    <input type="text" class="form-control admin-input" id="post-title" name="title" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="post-content" class="form-label text-white">Conteúdo *</label>
+                                <textarea class="form-control admin-input" id="post-content" name="content" rows="6" required></textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="post-image" class="form-label text-white">Imagem</label>
+                                    <input type="file" class="form-control admin-input" id="post-image" name="image" accept="image/*">
+                                    <div class="form-text text-white-50">PNG, JPG ou GIF até 16MB</div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="post-video" class="form-label text-white">Vídeo</label>
+                                    <input type="file" class="form-control admin-input" id="post-video" name="video" accept="video/*">
+                                    <div class="form-text text-white-50">MP4, AVI ou MOV até 16MB</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="post-featured" name="featured">
+                                    <label class="form-check-label text-white" for="post-featured">
+                                        Post em destaque (aparece na página inicial)
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-luxury-gold btn-lg">
+                                    <i class="fas fa-save me-2"></i>Salvar Post
                                 </button>
                             </div>
                         </form>

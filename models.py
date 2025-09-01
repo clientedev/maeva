@@ -17,6 +17,18 @@ class Property(db.Model):
     def __repr__(self):
         return f'<Property {self.title}>'
 
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text)
+    image_path = db.Column(db.String(300))
+    video_path = db.Column(db.String(300))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    featured = db.Column(db.Boolean, default=False)
+    
+    def __repr__(self):
+        return f'<Post {self.title}>'
+
 class AdminSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_token = db.Column(db.String(100), unique=True)

@@ -5,7 +5,7 @@ from flask import render_template, request, redirect, url_for, session, flash, j
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import app, db
-from models import Property, AdminSession
+from models import Property, Post, AdminSession
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'avi', 'mov'}
 ADMIN_PASSWORD = "4731v8"
@@ -15,9 +15,10 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    # Get featured properties for homepage
-    featured_properties = Property.query.filter_by(featured=True).limit(6).all()
-    return render_template('index.html', properties=featured_properties)
+    # Get 3 most recent properties and posts for homepage
+    recent_properties = Property.query.order_by(Property.created_at.desc()).limit(3).all()
+    recent_posts = Post.query.order_by(Post.created_at.desc()).limit(3).all()
+    return render_template('index.html', properties=recent_properties, posts=recent_posts)
 
 @app.route('/sobre')
 def about():
@@ -75,7 +76,8 @@ def admin_panel():
         return redirect(url_for('admin_login'))
     
     properties = Property.query.order_by(Property.created_at.desc()).all()
-    return render_template('admin_panel.html', properties=properties)
+    posts = Post.query.order_by(Post.created_at.desc()).all()
+    return render_template('admin_panel.html', properties=properties, posts=posts)
 
 @app.route('/admin/add-property', methods=['POST'])
 def add_property():
@@ -169,6 +171,82 @@ def admin_logout():
     
     flash('Logout realizado com sucesso!', 'success')
     return redirect(url_for('index'))
+
+@app.route('/admin/add-post', methods=['POST'])
+def add_post():
+    # Check admin authentication
+    admin_token = session.get('admin_token')
+    if not admin_token:
+        return redirect(url_for('admin_login'))
+    
+    admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
+    if not admin_session or admin_session.expires_at < datetime.utcnow():
+        session.pop('admin_token', None)
+        return redirect(url_for('admin_login'))
+    
+    title = request.form.get('title')
+    content = request.form.get('content')
+    featured = 'featured' in request.form
+    
+    image_path = None
+    video_path = None
+    
+    # Handle file uploads
+    if 'image' in request.files:
+        file = request.files['image']
+        if file and file.filename != '' and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            unique_filename = f"{uuid.uuid4()}_{filename}"
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file.save(image_path)
+    
+    if 'video' in request.files:
+        file = request.files['video']
+        if file and file.filename != '' and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            unique_filename = f"{uuid.uuid4()}_{filename}"
+            video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file.save(video_path)
+    
+    post_obj = Post(
+        title=title,
+        content=content,
+        image_path=image_path,
+        video_path=video_path,
+        featured=featured
+    )
+    
+    db.session.add(post_obj)
+    db.session.commit()
+    
+    flash('Post adicionado com sucesso!', 'success')
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/delete-post/<int:post_id>')
+def delete_post(post_id):
+    # Check admin authentication
+    admin_token = session.get('admin_token')
+    if not admin_token:
+        return redirect(url_for('admin_login'))
+    
+    admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
+    if not admin_session or admin_session.expires_at < datetime.utcnow():
+        session.pop('admin_token', None)
+        return redirect(url_for('admin_login'))
+    
+    post_obj = Post.query.get_or_404(post_id)
+    
+    # Delete associated files
+    if post_obj.image_path and os.path.exists(post_obj.image_path):
+        os.remove(post_obj.image_path)
+    if post_obj.video_path and os.path.exists(post_obj.video_path):
+        os.remove(post_obj.video_path)
+    
+    db.session.delete(post_obj)
+    db.session.commit()
+    
+    flash('Post removido com sucesso!', 'success')
+    return redirect(url_for('admin_panel'))
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):

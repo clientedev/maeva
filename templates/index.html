@@ -29,13 +29,13 @@
     </div>
 </section>
 
-<!-- Featured Properties -->
+<!-- Recent Properties -->
 {% if properties %}
 <section class="py-5 luxury-bg-dark">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="luxury-heading">Imóveis em Destaque</h2>
-            <p class="text-white-50">Seleção exclusiva dos melhores empreendimentos de São Paulo</p>
+            <h2 class="luxury-heading">Imóveis Recentes</h2>
+            <p class="text-white-50">Os 3 últimos imóveis adicionados ao nosso portfólio</p>
         </div>
         
         <div class="row">
@@ -72,6 +72,59 @@
                         {% if property.description %}
                         <p class="property-description">{{ property.description[:100] }}...</p>
                         {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('gallery') }}" class="btn btn-luxury-outline">
+                <i class="fas fa-images me-2"></i>Ver Todos os Imóveis
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Recent Posts -->
+{% if posts %}
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="luxury-heading">Posts Recentes</h2>
+            <p class="text-white-50">Últimas novidades e informações do mercado imobiliário</p>
+        </div>
+        
+        <div class="row">
+            {% for post in posts %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="luxury-property-card">
+                    {% if post.image_path %}
+                    <div class="property-image-wrapper">
+                        <img src="{{ url_for('uploaded_file', filename=post.image_path.split('/')[-1]) }}" 
+                             class="property-image" alt="{{ post.title }}">
+                        <div class="property-overlay">
+                            <div class="property-actions">
+                                <button class="btn btn-luxury-gold btn-sm share-property" 
+                                        data-title="{{ post.title }}" 
+                                        data-url="{{ url_for('index', _external=True) }}">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="property-content">
+                        <h5 class="property-title">{{ post.title }}</h5>
+                        {% if post.content %}
+                        <p class="property-description">{{ post.content[:150] }}...</p>
+                        {% endif %}
+                        <p class="property-date text-white-50">
+                            <i class="fas fa-calendar me-1"></i>
+                            {{ post.created_at.strftime('%d/%m/%Y') }}
+                        </p>
                     </div>
                 </div>
             </div>
