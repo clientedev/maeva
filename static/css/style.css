@@ -1008,3 +1008,43 @@ h1, h2, h3, h4, h5, h6 {
         color: #333 !important;
     }
 }
+
+/* Logo Styles */
+.navbar-logo {
+    height: 40px;
+    width: auto;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand:hover .navbar-logo {
+    transform: scale(1.1);
+}
+
+.footer-logo {
+    height: 60px;
+    width: auto;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.footer-logo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+    .navbar-logo {
+        height: 30px;
+    }
+    
+    .footer-logo {
+        height: 45px;
+    }
+    
+    .footer-logo-section {
+        align-items: center;
+        text-align: center;
+    }
+}
