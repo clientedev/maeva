@@ -1,0 +1,421 @@
+<!-- Chatbot Widget -->
+<div id="chatbot-widget" class="chatbot-widget">
+    <div id="chatbot-toggle" class="chatbot-toggle">
+        <i class="fas fa-comments"></i>
+        <span class="chatbot-notification" id="chatbot-notification">1</span>
+    </div>
+    
+    <div id="chatbot-container" class="chatbot-container" style="display: none;">
+        <div class="chatbot-header">
+            <div class="chatbot-info">
+                <div class="chatbot-avatar">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0">Assistente Maeva</h6>
+                    <small class="text-muted">Consultora Virtual</small>
+                </div>
+            </div>
+            <button id="chatbot-close" class="btn-close btn-close-white"></button>
+        </div>
+        
+        <div id="chatbot-messages" class="chatbot-messages">
+            <div class="message bot-message">
+                <div class="message-content">
+                    <p>👋 Olá! Sou a assistente virtual da Maeva Investimentos.</p>
+                    <p>Posso te ajudar com informações sobre nossos imóveis de alto padrão em São Paulo.</p>
+                    <p>Para começar, preciso do seu nome e telefone para um atendimento personalizado. Como posso te chamar?</p>
+                </div>
+                <small class="message-time">agora</small>
+            </div>
+        </div>
+        
+        <div class="chatbot-input">
+            <div class="input-group">
+                <input type="text" id="chatbot-message-input" class="form-control" 
+                       placeholder="Digite sua mensagem..." maxlength="500">
+                <button id="chatbot-send" class="btn btn-luxury-gold">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.chatbot-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    font-family: 'Inter', sans-serif;
+}
+
+.chatbot-toggle {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--luxury-gold), #f4d03f);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.chatbot-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(212, 175, 55, 0.6);
+}
+
+.chatbot-toggle i {
+    color: var(--luxury-black);
+    font-size: 24px;
+}
+
+.chatbot-notification {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.chatbot-container {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    width: 350px;
+    height: 450px;
+    background: var(--luxury-dark);
+    border-radius: 15px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chatbot-header {
+    background: var(--luxury-black);
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.chatbot-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chatbot-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--luxury-gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chatbot-avatar i {
+    color: var(--luxury-black);
+    font-size: 18px;
+}
+
+.chatbot-header h6 {
+    color: var(--luxury-gold);
+    margin: 0;
+}
+
+.chatbot-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background: var(--luxury-dark);
+}
+
+.message {
+    margin-bottom: 15px;
+    animation: fadeInUp 0.3s ease;
+}
+
+.message-content {
+    padding: 12px 15px;
+    border-radius: 18px;
+    max-width: 85%;
+    word-wrap: break-word;
+}
+
+.bot-message .message-content {
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    color: var(--luxury-white);
+    margin-right: auto;
+}
+
+.user-message {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.user-message .message-content {
+    background: var(--luxury-gold);
+    color: var(--luxury-black);
+    margin-left: auto;
+    font-weight: 500;
+}
+
+.message-time {
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 5px;
+    font-size: 11px;
+}
+
+.chatbot-input {
+    padding: 15px;
+    background: var(--luxury-black);
+    border-top: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.chatbot-input .form-control {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    color: var(--luxury-white);
+    border-radius: 25px 0 0 25px;
+}
+
+.chatbot-input .form-control:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--luxury-gold);
+    box-shadow: none;
+    color: var(--luxury-white);
+}
+
+.chatbot-input .btn {
+    border-radius: 0 25px 25px 0;
+    border: 1px solid var(--luxury-gold);
+}
+
+.chatbot-typing {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 3px;
+}
+
+.typing-dot {
+    width: 4px;
+    height: 4px;
+    background: var(--luxury-gold);
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-10px); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .chatbot-container {
+        width: 300px;
+        height: 400px;
+        bottom: 70px;
+        right: -10px;
+    }
+    
+    .chatbot-widget {
+        bottom: 15px;
+        right: 15px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatbotToggle = document.getElementById('chatbot-toggle');
+    const chatbotContainer = document.getElementById('chatbot-container');
+    const chatbotClose = document.getElementById('chatbot-close');
+    const chatbotMessages = document.getElementById('chatbot-messages');
+    const messageInput = document.getElementById('chatbot-message-input');
+    const sendButton = document.getElementById('chatbot-send');
+    const notification = document.getElementById('chatbot-notification');
+    
+    let isOpen = false;
+    let userInfo = { name: '', phone: '', hasProvidedInfo: false };
+    let conversationId = null;
+    
+    // Toggle chatbot
+    chatbotToggle.addEventListener('click', function() {
+        isOpen = !isOpen;
+        chatbotContainer.style.display = isOpen ? 'flex' : 'none';
+        if (isOpen) {
+            notification.style.display = 'none';
+            messageInput.focus();
+        }
+    });
+    
+    chatbotClose.addEventListener('click', function() {
+        isOpen = false;
+        chatbotContainer.style.display = 'none';
+    });
+    
+    // Send message
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+        
+        addMessage(message, 'user');
+        messageInput.value = '';
+        
+        // Show typing indicator
+        showTyping();
+        
+        // Process message
+        setTimeout(() => {
+            processMessage(message);
+        }, 1000);
+    }
+    
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+    
+    function addMessage(content, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}-message`;
+        
+        const time = new Date().toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <p>${content}</p>
+            </div>
+            <small class="message-time">${time}</small>
+        `;
+        
+        chatbotMessages.appendChild(messageDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+    
+    function showTyping() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot-message';
+        typingDiv.id = 'typing-indicator';
+        typingDiv.innerHTML = `
+            <div class="message-content chatbot-typing">
+                <span>Digitando</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        `;
+        
+        chatbotMessages.appendChild(typingDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+    
+    function removeTyping() {
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+    
+    function processMessage(message) {
+        // Handle user info collection
+        if (!userInfo.hasProvidedInfo) {
+            if (!userInfo.name) {
+                userInfo.name = message;
+                removeTyping();
+                addMessage(`Prazer em conhecê-lo, ${userInfo.name}! Agora preciso do seu telefone para que nossa equipe possa entrar em contato.`, 'bot');
+                return;
+            } else if (!userInfo.phone) {
+                userInfo.phone = message;
+                userInfo.hasProvidedInfo = true;
+                removeTyping();
+                addMessage(`Perfeito, ${userInfo.name}! Agora posso te ajudar com informações sobre nossos imóveis. O que você gostaria de saber?`, 'bot');
+                return;
+            }
+        }
+        
+        // Send to backend for AI processing
+        fetch('/chatbot/message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                user_name: userInfo.name,
+                user_phone: userInfo.phone,
+                conversation_id: conversationId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            removeTyping();
+            addMessage(data.response, 'bot');
+            if (data.conversation_id) {
+                conversationId = data.conversation_id;
+            }
+        })
+        .catch(error => {
+            removeTyping();
+            addMessage('Desculpe, ocorreu um erro. Tente novamente.', 'bot');
+            console.error('Error:', error);
+        });
+    }
+});
+</script>

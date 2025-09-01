@@ -24,6 +24,9 @@
                     <a href="#posts" class="nav-link" data-section="posts">
                         <i class="fas fa-newspaper me-2"></i>Posts
                     </a>
+                    <a href="{{ url_for('admin_conversations') }}" class="nav-link">
+                        <i class="fas fa-comments me-2"></i>Conversas Chatbot
+                    </a>
                     <a href="#add-post" class="nav-link" data-section="add-post">
                         <i class="fas fa-plus me-2"></i>Adicionar Post
                     </a>
@@ -154,17 +157,20 @@
                             
                             <div class="row">
                                 <div class="col-lg-6 mb-3">
-                                    <label for="image" class="form-label">Imagem Principal</label>
+                                    <label for="images" class="form-label">Imagens (até 10 fotos)</label>
                                     <input type="file" class="form-control luxury-input" 
-                                           id="image" name="image" accept="image/*">
-                                    <div class="form-text text-white-50">Formatos: JPG, PNG, GIF (máx. 16MB)</div>
+                                           id="images" name="images" accept="image/*" multiple>
+                                    <div class="form-text text-white-50">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Selecione até 10 fotos. A primeira será a imagem principal.
+                                    </div>
                                 </div>
                                 
                                 <div class="col-lg-6 mb-3">
                                     <label for="video" class="form-label">Vídeo (Opcional)</label>
                                     <input type="file" class="form-control luxury-input" 
                                            id="video" name="video" accept="video/*">
-                                    <div class="form-text text-white-50">Formatos: MP4, AVI, MOV (máx. 16MB)</div>
+                                    <div class="form-text text-white-50">Formatos: MP4, AVI, MOV (máx. 200MB)</div>
                                 </div>
                             </div>
                             

@@ -955,14 +955,22 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--luxury-dark);
     border: 1px solid rgba(212, 175, 55, 0.3);
     border-radius: 15px;
+    color: var(--luxury-white);
 }
 
 .luxury-modal .modal-header {
     border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    background: var(--luxury-dark);
+}
+
+.luxury-modal .modal-body {
+    background: var(--luxury-dark);
+    color: var(--luxury-white);
 }
 
 .luxury-modal .modal-footer {
     border-top: 1px solid rgba(212, 175, 55, 0.2);
+    background: var(--luxury-dark);
 }
 
 .property-modal-actions {
