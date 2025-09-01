@@ -1011,21 +1011,29 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Logo Styles */
 .navbar-logo {
-    height: 40px;
-    width: auto;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-}
-
-.navbar-brand:hover .navbar-logo {
-    transform: scale(1.1);
-}
-
-.footer-logo {
-    height: 60px;
+    height: 50px;
     width: auto;
     border-radius: 8px;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+}
+
+.navbar-brand:hover .navbar-logo {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+}
+
+.footer-logo {
+    height: 80px;
+    width: auto;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(212, 175, 55, 0.2);
+}
+
+.footer-logo:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
 }
 
 .footer-logo-section {
@@ -1034,17 +1042,27 @@ h1, h2, h3, h4, h5, h6 {
     align-items: flex-start;
 }
 
+.luxury-brand {
+    display: flex;
+    align-items: center;
+    font-size: 1.4rem;
+}
+
 @media (max-width: 768px) {
     .navbar-logo {
-        height: 30px;
+        height: 40px;
     }
     
     .footer-logo {
-        height: 45px;
+        height: 60px;
     }
     
     .footer-logo-section {
         align-items: center;
         text-align: center;
+    }
+    
+    .luxury-brand {
+        font-size: 1.2rem;
     }
 }
