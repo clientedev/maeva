@@ -187,28 +187,40 @@
 </section>
 {% endif %}
 
-<!-- Recent Posts -->
-{% if posts %}
+<!-- Recent Properties -->
+{% if properties %}
 <section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="luxury-heading">Posts Recentes</h2>
-            <p class="text-white-50">Últimas novidades e informações do mercado imobiliário</p>
+            <h2 class="luxury-heading">Imóveis Recentes</h2>
+            <p class="text-white-50">Conheça os mais novos imóveis disponíveis em nosso portfólio</p>
         </div>
         
         <div class="row">
-            {% for post in posts %}
+            {% for property in properties %}
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="luxury-property-card">
-                    {% if post.image_path %}
+                    {% if property.image_path %}
                     <div class="property-image-wrapper">
-                        <img src="{{ url_for('uploaded_file', filename=post.image_path.split('/')[-1]) }}" 
-                             class="property-image" alt="{{ post.title }}">
+                        <img src="{{ url_for('uploaded_file', filename=property.image_path.split('/')[-1]) }}" 
+                             class="property-image" alt="{{ property.title }}">
                         <div class="property-overlay">
                             <div class="property-actions">
-                                <button class="btn btn-luxury-gold btn-sm share-property" 
-                                        data-title="{{ post.title }}" 
-                                        data-url="{{ url_for('index', _external=True) }}">
+                                <button class="btn btn-luxury-gold btn-sm me-2 view-property" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#propertyModal"
+                                        data-title="{{ property.title }}"
+                                        data-description="{{ property.description or '' }}"
+                                        data-location="{{ property.location or '' }}"
+                                        data-price="{{ property.price or '' }}"
+                                        data-type="{{ property.property_type or '' }}"
+                                        data-image="{{ url_for('uploaded_file', filename=property.image_path.split('/')[-1]) if property.image_path else '' }}"
+                                        data-video="{{ url_for('uploaded_file', filename=property.video_path.split('/')[-1]) if property.video_path else '' }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-luxury-outline btn-sm share-property" 
+                                        data-title="{{ property.title }}" 
+                                        data-url="{{ url_for('gallery', _external=True) }}">
                                     <i class="fas fa-share-alt"></i>
                                 </button>
                             </div>
@@ -217,23 +229,55 @@
                     {% endif %}
                     
                     <div class="property-content">
-                        <h5 class="property-title">{{ post.title }}</h5>
-                        {% if post.content %}
-                        <p class="property-description">{{ post.content[:150] }}...</p>
+                        <h5 class="property-title">{{ property.title }}</h5>
+                        
+                        {% if property.property_type %}
+                        <span class="property-type-badge">{{ property.property_type }}</span>
                         {% endif %}
+                        
+                        {% if property.location %}
+                        <p class="property-location">
+                            <i class="fas fa-map-marker-alt luxury-text-gold me-1"></i>
+                            {{ property.location }}
+                        </p>
+                        {% endif %}
+                        
+                        {% if property.price %}
+                        <p class="property-price">{{ property.price }}</p>
+                        {% endif %}
+                        
+                        {% if property.description %}
+                        <p class="property-description">{{ property.description[:100] }}{% if property.description|length > 100 %}...{% endif %}</p>
+                        {% endif %}
+                        
                         <div class="d-flex justify-content-between align-items-center">
                             <p class="property-date text-white-50 mb-0">
                                 <i class="fas fa-calendar me-1"></i>
-                                {{ post.created_at.strftime('%d/%m/%Y') }}
+                                {{ property.created_at.strftime('%d/%m/%Y') }}
                             </p>
-                            <a href="{{ url_for('view_post', post_id=post.id) }}" class="btn btn-luxury-gold btn-sm">
-                                Ler Mais
-                            </a>
+                            <button class="btn btn-luxury-gold btn-sm view-property" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#propertyModal"
+                                    data-title="{{ property.title }}"
+                                    data-description="{{ property.description or '' }}"
+                                    data-location="{{ property.location or '' }}"
+                                    data-price="{{ property.price or '' }}"
+                                    data-type="{{ property.property_type or '' }}"
+                                    data-image="{{ url_for('uploaded_file', filename=property.image_path.split('/')[-1]) if property.image_path else '' }}"
+                                    data-video="{{ url_for('uploaded_file', filename=property.video_path.split('/')[-1]) if property.video_path else '' }}">
+                                Ver Detalhes
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
             {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('gallery') }}" class="btn btn-luxury-outline">
+                <i class="fas fa-images me-2"></i>Ver Todos os Imóveis
+            </a>
         </div>
     </div>
 </section>
