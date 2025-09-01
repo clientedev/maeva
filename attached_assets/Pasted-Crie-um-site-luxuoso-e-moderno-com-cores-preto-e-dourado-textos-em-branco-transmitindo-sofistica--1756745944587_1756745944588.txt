@@ -1,0 +1,65 @@
+Crie um site luxuoso e moderno, com cores preto e dourado, textos em branco, transmitindo sofisticação e exclusividade.
+
+Estrutura do site:
+
+Nome da empresa: Maeva Investimentos Imobiliários
+
+Slogan: “Conectando pessoas aos melhores imóveis de São Paulo.”
+
+Página inicial (Home):
+
+Destaque visual elegante com o slogan e imagens de imóveis de alto padrão e luxo.
+
+Botões chamativos para contato via WhatsApp e acesso às redes sociais.
+
+Página Sobre nós:
+
+Texto institucional:
+
+“Com mais de 13 anos de experiência no mercado imobiliário de médio e alto padrão, ajudo clientes a realizarem seus sonhos e alcançarem excelentes investimentos. Atuo em parceria com as principais construtoras de São Paulo, com foco em empreendimentos exclusivos como o Parque Global – um dos maiores e mais completos projetos do Brasil. Meu compromisso é criar vínculos de confiança e oferecer um atendimento personalizado, unindo profissionalismo e proximidade em cada negociação.”
+
+Serviços:
+
+Consultoria na compra de imóveis de médio e alto padrão
+
+Especialista em lançamentos e grandes empreendimentos
+
+Assessoria personalizada para investidores
+
+Acompanhamento completo do processo de compra e pós-venda
+
+Galeria de Imagens e Vídeos:
+
+Espaço para mostrar imóveis de luxo com fotos em alta resolução.
+
+Cada item pode ter legendas descritivas.
+
+Botões de compartilhamento (WhatsApp, Instagram, LinkedIn).
+
+Depoimentos: seção com comentários de clientes (podendo ser adicionados futuramente).
+
+Contato:
+
+WhatsApp: (11) 98755-7913
+
+Instagram: @Roseaventura
+
+LinkedIn: Rose Ventura
+
+Área Administrativa:
+
+Uma engrenagem discreta no footer que abre acesso administrativo.
+
+Senha para login: 4731v8
+
+Painel simples e elegante para postar imagens de imóveis de alto padrão, vídeos e legendas, que aparecem automaticamente na seção de posts e podem ser compartilhados.
+
+Observações:
+
+Design luxuoso e minimalista, com muito espaço em preto/dourado como base.
+
+Imagens de imóveis de luxo devem aparecer em destaque em diferentes seções do site.
+
+Ícones e botões com acabamento dourado metálico.
+
+Transições suaves e responsivas em todas as páginas.
