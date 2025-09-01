@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Maeva Investimentos Imobiliários - Conectando pessoas aos melhores imóveis de São Paulo{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="container">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-8">
+                    <h1 class="hero-title">Maeva Investimentos Imobiliários</h1>
+                    <p class="hero-subtitle">"Conectando pessoas aos melhores imóveis de São Paulo."</p>
+                    <div class="hero-buttons">
+                        <a href="https://wa.me/5511987557913" class="btn btn-luxury-gold btn-lg me-3" target="_blank">
+                            <i class="fab fa-whatsapp me-2"></i>Fale Conosco
+                        </a>
+                        <a href="{{ url_for('gallery') }}" class="btn btn-luxury-outline btn-lg">
+                            <i class="fas fa-images me-2"></i>Ver Imóveis
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="hero-scroll-indicator">
+        <i class="fas fa-chevron-down"></i>
+    </div>
+</section>
+
+<!-- Featured Properties -->
+{% if properties %}
+<section class="py-5 luxury-bg-dark">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="luxury-heading">Imóveis em Destaque</h2>
+            <p class="text-white-50">Seleção exclusiva dos melhores empreendimentos de São Paulo</p>
+        </div>
+        
+        <div class="row">
+            {% for property in properties %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="luxury-property-card">
+                    {% if property.image_path %}
+                    <div class="property-image-wrapper">
+                        <img src="{{ url_for('uploaded_file', filename=property.image_path.split('/')[-1]) }}" 
+                             class="property-image" alt="{{ property.title }}">
+                        <div class="property-overlay">
+                            <div class="property-actions">
+                                <button class="btn btn-luxury-gold btn-sm share-property" 
+                                        data-title="{{ property.title }}" 
+                                        data-url="{{ url_for('gallery', _external=True) }}">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="property-content">
+                        <h5 class="property-title">{{ property.title }}</h5>
+                        {% if property.location %}
+                        <p class="property-location">
+                            <i class="fas fa-map-marker-alt luxury-text-gold me-1"></i>
+                            {{ property.location }}
+                        </p>
+                        {% endif %}
+                        {% if property.price %}
+                        <p class="property-price">{{ property.price }}</p>
+                        {% endif %}
+                        {% if property.description %}
+                        <p class="property-description">{{ property.description[:100] }}...</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Services Preview -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="luxury-heading">Nossos Serviços</h2>
+            <p class="text-white-50">Atendimento personalizado com mais de 13 anos de experiência</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="service-card text-center">
+                    <div class="service-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h5>Consultoria Especializada</h5>
+                    <p>Consultoria na compra de imóveis de médio e alto padrão</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="service-card text-center">
+                    <div class="service-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h5>Grandes Empreendimentos</h5>
+                    <p>Especialista em lançamentos e grandes empreendimentos</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="service-card text-center">
+                    <div class="service-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5>Assessoria para Investidores</h5>
+                    <p>Assessoria personalizada para investidores</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="service-card text-center">
+                    <div class="service-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h5>Acompanhamento Completo</h5>
+                    <p>Acompanhamento completo do processo de compra e pós-venda</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('services') }}" class="btn btn-luxury-outline">Ver Todos os Serviços</a>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta-section">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h2 class="cta-title">Realize seu sonho imobiliário</h2>
+                <p class="cta-subtitle">Entre em contato e descubra as melhores oportunidades do mercado paulistano</p>
+                <div class="cta-buttons">
+                    <a href="https://wa.me/5511987557913" class="btn btn-luxury-gold btn-lg me-3" target="_blank">
+                        <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                    </a>
+                    <a href="https://instagram.com/Roseaventura" class="btn btn-luxury-outline btn-lg me-3" target="_blank">
+                        <i class="fab fa-instagram me-2"></i>Instagram
+                    </a>
+                    <a href="https://linkedin.com/in/rose-ventura" class="btn btn-luxury-outline btn-lg" target="_blank">
+                        <i class="fab fa-linkedin me-2"></i>LinkedIn
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

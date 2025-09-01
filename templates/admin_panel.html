@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Painel Administrativo - Maeva Investimentos{% endblock %}
+
+{% block content %}
+<section class="admin-section">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3 col-md-4 admin-sidebar">
+                <div class="sidebar-header">
+                    <h4 class="luxury-text-gold">
+                        <i class="fas fa-crown me-2"></i>Admin Panel
+                    </h4>
+                </div>
+                
+                <nav class="sidebar-nav">
+                    <a href="#properties" class="nav-link active" data-section="properties">
+                        <i class="fas fa-home me-2"></i>Propriedades
+                    </a>
+                    <a href="#add-property" class="nav-link" data-section="add-property">
+                        <i class="fas fa-plus me-2"></i>Adicionar Propriedade
+                    </a>
+                    <a href="{{ url_for('admin_logout') }}" class="nav-link text-danger">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </nav>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-lg-9 col-md-8 admin-content">
+                <!-- Properties List -->
+                <div id="properties-section" class="admin-section-content">
+                    <div class="section-header">
+                        <h2 class="luxury-heading">Propriedades Cadastradas</h2>
+                        <button class="btn btn-luxury-gold" onclick="showSection('add-property')">
+                            <i class="fas fa-plus me-1"></i>Nova Propriedade
+                        </button>
+                    </div>
+                    
+                    <div class="properties-grid">
+                        {% if properties %}
+                            {% for property in properties %}
+                            <div class="admin-property-card">
+                                {% if property.image_path %}
+                                <div class="property-image-admin">
+                                    <img src="{{ url_for('uploaded_file', filename=property.image_path.split('/')[-1]) }}" 
+                                         alt="{{ property.title }}">
+                                </div>
+                                {% endif %}
+                                
+                                <div class="property-info">
+                                    <h5 class="property-title-admin">{{ property.title }}</h5>
+                                    
+                                    {% if property.featured %}
+                                    <span class="badge luxury-badge mb-2">Destaque</span>
+                                    {% endif %}
+                                    
+                                    {% if property.property_type %}
+                                    <p class="property-meta"><strong>Tipo:</strong> {{ property.property_type }}</p>
+                                    {% endif %}
+                                    
+                                    {% if property.location %}
+                                    <p class="property-meta"><strong>Local:</strong> {{ property.location }}</p>
+                                    {% endif %}
+                                    
+                                    {% if property.price %}
+                                    <p class="property-meta"><strong>Preço:</strong> {{ property.price }}</p>
+                                    {% endif %}
+                                    
+                                    <p class="property-meta">
+                                        <strong>Criado:</strong> {{ property.created_at.strftime('%d/%m/%Y') }}
+                                    </p>
+                                    
+                                    <div class="property-actions">
+                                        <a href="{{ url_for('delete_property', property_id=property.id) }}" 
+                                           class="btn btn-danger btn-sm"
+                                           onclick="return confirm('Tem certeza que deseja excluir esta propriedade?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-home luxury-text-gold" style="font-size: 3rem;"></i>
+                                <h4 class="mt-3">Nenhuma propriedade cadastrada</h4>
+                                <p class="text-white-50">Clique em "Nova Propriedade" para adicionar o primeiro imóvel.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Add Property Form -->
+                <div id="add-property-section" class="admin-section-content" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="luxury-heading">Adicionar Nova Propriedade</h2>
+                        <button class="btn btn-luxury-outline" onclick="showSection('properties')">
+                            <i class="fas fa-arrow-left me-1"></i>Voltar
+                        </button>
+                    </div>
+                    
+                    <div class="add-property-form">
+                        <form action="{{ url_for('add_property') }}" method="POST" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-lg-6 mb-3">
+                                    <label for="title" class="form-label">Título*</label>
+                                    <input type="text" class="form-control luxury-input" 
+                                           id="title" name="title" required>
+                                </div>
+                                
+                                <div class="col-lg-6 mb-3">
+                                    <label for="property_type" class="form-label">Tipo de Propriedade</label>
+                                    <select class="form-control luxury-input" id="property_type" name="property_type">
+                                        <option value="">Selecione...</option>
+                                        <option value="apartamento">Apartamento</option>
+                                        <option value="casa">Casa</option>
+                                        <option value="cobertura">Cobertura</option>
+                                        <option value="comercial">Comercial</option>
+                                        <option value="terreno">Terreno</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-lg-6 mb-3">
+                                    <label for="location" class="form-label">Localização</label>
+                                    <input type="text" class="form-control luxury-input" 
+                                           id="location" name="location" 
+                                           placeholder="Ex: Jardins, São Paulo">
+                                </div>
+                                
+                                <div class="col-lg-6 mb-3">
+                                    <label for="price" class="form-label">Preço</label>
+                                    <input type="text" class="form-control luxury-input" 
+                                           id="price" name="price" 
+                                           placeholder="Ex: R$ 1.500.000">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Descrição</label>
+                                <textarea class="form-control luxury-input" id="description" 
+                                          name="description" rows="4" 
+                                          placeholder="Descreva os detalhes do imóvel..."></textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-lg-6 mb-3">
+                                    <label for="image" class="form-label">Imagem Principal</label>
+                                    <input type="file" class="form-control luxury-input" 
+                                           id="image" name="image" accept="image/*">
+                                    <div class="form-text text-white-50">Formatos: JPG, PNG, GIF (máx. 16MB)</div>
+                                </div>
+                                
+                                <div class="col-lg-6 mb-3">
+                                    <label for="video" class="form-label">Vídeo (Opcional)</label>
+                                    <input type="file" class="form-control luxury-input" 
+                                           id="video" name="video" accept="video/*">
+                                    <div class="form-text text-white-50">Formatos: MP4, AVI, MOV (máx. 16MB)</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check luxury-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="featured" name="featured">
+                                    <label class="form-check-label text-white" for="featured">
+                                        Propriedade em destaque (aparece na página inicial)
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-luxury-gold btn-lg">
+                                    <i class="fas fa-save me-2"></i>Salvar Propriedade
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showSection(sectionName) {
+    // Hide all sections
+    document.querySelectorAll('.admin-section-content').forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Remove active class from all nav links
+    document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    
+    // Show selected section
+    document.getElementById(sectionName + '-section').style.display = 'block';
+    
+    // Add active class to selected nav link
+    document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+}
+
+// Handle navigation clicks
+document.querySelectorAll('.sidebar-nav .nav-link[data-section]').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const section = this.getAttribute('data-section');
+        showSection(section);
+    });
+});
+
+// File input preview functionality
+document.getElementById('image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // You could add image preview functionality here
+        console.log('Image selected:', file.name);
+    }
+});
+
+document.getElementById('video').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // You could add video preview functionality here
+        console.log('Video selected:', file.name);
+    }
+});
+</script>
+{% endblock %}

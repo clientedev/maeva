@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Acesso Administrativo - Maeva Investimentos{% endblock %}
+
+{% block content %}
+<section class="admin-login-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6">
+                <div class="admin-login-card">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-crown luxury-text-gold" style="font-size: 3rem;"></i>
+                        <h3 class="mt-3 luxury-text-gold">Área Administrativa</h3>
+                        <p class="text-white-50">Acesso restrito</p>
+                    </div>
+                    
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label for="password" class="form-label text-white">Senha</label>
+                            <input type="password" class="form-control luxury-input" 
+                                   id="password" name="password" required>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-luxury-gold btn-lg w-100">
+                                <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('index') }}" class="text-white-50">
+                            <i class="fas fa-arrow-left me-1"></i>Voltar ao site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

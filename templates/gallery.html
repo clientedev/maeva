@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Galeria - Maeva Investimentos Imobiliários{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="page-hero">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h1 class="page-title">Galeria de Imóveis</h1>
+                <p class="page-subtitle">Conheça nossa seleção exclusiva de imóveis de alto padrão</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Gallery Grid -->
+<section class="py-5">
+    <div class="container">
+        {% if properties %}
+        <div class="row">
+            {% for property in properties %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="luxury-property-card">
+                    {% if property.image_path %}
+                    <div class="property-image-wrapper">
+                        <img src="{{ url_for('uploaded_file', filename=property.image_path.split('/')[-1]) }}" 
+                             class="property-image" alt="{{ property.title }}">
+                        <div class="property-overlay">
+                            <div class="property-actions">
+                                <button class="btn btn-luxury-gold btn-sm me-2 view-property" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#propertyModal"
+                                        data-title="{{ property.title }}"
+                                        data-description="{{ property.description or '' }}"
+                                        data-location="{{ property.location or '' }}"
+                                        data-price="{{ property.price or '' }}"
+                                        data-type="{{ property.property_type or '' }}"
+                                        data-image="{{ url_for('uploaded_file', filename=property.image_path.split('/')[-1]) if property.image_path else '' }}"
+                                        data-video="{{ url_for('uploaded_file', filename=property.video_path.split('/')[-1]) if property.video_path else '' }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-luxury-outline btn-sm share-property" 
+                                        data-title="{{ property.title }}" 
+                                        data-url="{{ url_for('gallery', _external=True) }}">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="property-content">
+                        <h5 class="property-title">{{ property.title }}</h5>
+                        
+                        {% if property.property_type %}
+                        <span class="property-type-badge">{{ property.property_type }}</span>
+                        {% endif %}
+                        
+                        {% if property.location %}
+                        <p class="property-location">
+                            <i class="fas fa-map-marker-alt luxury-text-gold me-1"></i>
+                            {{ property.location }}
+                        </p>
+                        {% endif %}
+                        
+                        {% if property.price %}
+                        <p class="property-price">{{ property.price }}</p>
+                        {% endif %}
+                        
+                        {% if property.description %}
+                        <p class="property-description">{{ property.description[:100] }}{% if property.description|length > 100 %}...{% endif %}</p>
+                        {% endif %}
+                        
+                        <div class="property-footer">
+                            <small class="text-white-50">Adicionado em {{ property.created_at.strftime('%d/%m/%Y') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="empty-state">
+                <i class="fas fa-home luxury-text-gold" style="font-size: 4rem;"></i>
+                <h3 class="mt-3 text-white">Nenhum imóvel disponível</h3>
+                <p class="text-white-50">Nossa galeria está sendo atualizada. Em breve, novos imóveis exclusivos serão adicionados.</p>
+                <a href="{{ url_for('contact') }}" class="btn btn-luxury-gold">
+                    <i class="fab fa-whatsapp me-2"></i>Entre em Contato
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Sample Properties (fallback when no properties uploaded) -->
+{% if not properties %}
+<section class="py-5 luxury-bg-dark">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="luxury-heading">Imóveis de Referência</h2>
+            <p class="text-white-50">Exemplos do padrão de qualidade que oferecemos</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="luxury-property-card">
+                    <div class="property-image-wrapper">
+                        <img src="https://pixabay.com/get/gd01d746b06cae5abf7e8383a8c8dbc943ca3344ebbcff7460e54a786576002e0874566a29e224f869d957a11f78654e5eff859aa3e50a23d5e0e0f6c16dc52d4_1280.jpg" 
+                             class="property-image" alt="Apartamento de Luxo">
+                        <div class="property-overlay">
+                            <div class="property-actions">
+                                <button class="btn btn-luxury-outline btn-sm share-property" 
+                                        data-title="Apartamento de Luxo" 
+                                        data-url="{{ url_for('gallery', _external=True) }}">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="property-content">
+                        <h5 class="property-title">Apartamento de Alto Padrão</h5>
+                        <span class="property-type-badge">Apartamento</span>
+                        <p class="property-location">
+                            <i class="fas fa-map-marker-alt luxury-text-gold me-1"></i>
+                            Jardins, São Paulo
+                        </p>
+                        <p class="property-description">Exemplo do padrão de qualidade dos imóveis que comercializamos.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="luxury-property-card">
+                    <div class="property-image-wrapper">
+                        <img src="https://pixabay.com/get/g5f818560ab4676c9b5e7087c32b2927b9dcc3a3053eaea87c1dae2ca6e5ff0eef85b977c3aef31141f754a82d3f01ac3f9c822ea0fb4caf4bb9943240d5a4553_1280.jpg" 
+                             class="property-image" alt="Interior Moderno">
+                        <div class="property-overlay">
+                            <div class="property-actions">
+                                <button class="btn btn-luxury-outline btn-sm share-property" 
+                                        data-title="Interior Moderno" 
+                                        data-url="{{ url_for('gallery', _external=True) }}">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="property-content">
+                        <h5 class="property-title">Design Contemporâneo</h5>
+                        <span class="property-type-badge">Interior</span>
+                        <p class="property-location">
+                            <i class="fas fa-map-marker-alt luxury-text-gold me-1"></i>
+                            Vila Madalena, São Paulo
+                        </p>
+                        <p class="property-description">Ambientes sofisticados com acabamentos de primeira qualidade.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="luxury-property-card">
+                    <div class="property-image-wrapper">
+                        <img src="https://pixabay.com/get/g32c846c06ae2718811a257bbfd274728f958c0490fb9a0b4ae7ec626e9f2390e633cc77dde4e0eec04f9979ebc487a9cc690c6a9608c219e4a5abbd5fa4bc648_1280.jpg" 
+                             class="property-image" alt="Fachada Moderna">
+                        <div class="property-overlay">
+                            <div class="property-actions">
+                                <button class="btn btn-luxury-outline btn-sm share-property" 
+                                        data-title="Empreendimento Moderno" 
+                                        data-url="{{ url_for('gallery', _external=True) }}">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="property-content">
+                        <h5 class="property-title">Empreendimento Exclusivo</h5>
+                        <span class="property-type-badge">Comercial</span>
+                        <p class="property-location">
+                            <i class="fas fa-map-marker-alt luxury-text-gold me-1"></i>
+                            Faria Lima, São Paulo
+                        </p>
+                        <p class="property-description">Arquitetura moderna e localização privilegiada.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Property Modal -->
+<div class="modal fade" id="propertyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content luxury-modal">
+            <div class="modal-header">
+                <h5 class="modal-title luxury-text-gold" id="modalTitle"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalImage" class="mb-3"></div>
+                <div id="modalVideo" class="mb-3"></div>
+                <div id="modalDetails"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="property-modal-actions">
+                    <a href="https://wa.me/5511987557913" class="btn btn-luxury-gold" target="_blank">
+                        <i class="fab fa-whatsapp me-1"></i> Interesse
+                    </a>
+                    <button type="button" class="btn btn-luxury-outline share-modal-property">
+                        <i class="fas fa-share-alt me-1"></i> Compartilhar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <h2 class="cta-title">Encontrou o imóvel ideal?</h2>
+                <p class="cta-subtitle">Entre em contato conosco e agende uma visita</p>
+                <a href="https://wa.me/5511987557913" class="btn btn-luxury-gold btn-lg" target="_blank">
+                    <i class="fab fa-whatsapp me-2"></i>Falar com Especialista
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Property modal functionality
+    const propertyModal = document.getElementById('propertyModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalImage = document.getElementById('modalImage');
+    const modalVideo = document.getElementById('modalVideo');
+    const modalDetails = document.getElementById('modalDetails');
+    
+    document.querySelectorAll('.view-property').forEach(button => {
+        button.addEventListener('click', function() {
+            const title = this.getAttribute('data-title');
+            const description = this.getAttribute('data-description');
+            const location = this.getAttribute('data-location');
+            const price = this.getAttribute('data-price');
+            const type = this.getAttribute('data-type');
+            const image = this.getAttribute('data-image');
+            const video = this.getAttribute('data-video');
+            
+            modalTitle.textContent = title;
+            
+            // Clear previous content
+            modalImage.innerHTML = '';
+            modalVideo.innerHTML = '';
+            
+            // Add image if available
+            if (image) {
+                modalImage.innerHTML = `<img src="${image}" class="img-fluid luxury-image" alt="${title}">`;
+            }
+            
+            // Add video if available
+            if (video) {
+                modalVideo.innerHTML = `
+                    <video class="w-100 luxury-image" controls>
+                        <source src="${video}" type="video/mp4">
+                        Seu navegador não suporta a tag de vídeo.
+                    </video>
+                `;
+            }
+            
+            // Add details
+            let detailsHtml = '';
+            if (type) detailsHtml += `<p><strong class="luxury-text-gold">Tipo:</strong> ${type}</p>`;
+            if (location) detailsHtml += `<p><strong class="luxury-text-gold">Localização:</strong> ${location}</p>`;
+            if (price) detailsHtml += `<p><strong class="luxury-text-gold">Preço:</strong> ${price}</p>`;
+            if (description) detailsHtml += `<p><strong class="luxury-text-gold">Descrição:</strong> ${description}</p>`;
+            
+            modalDetails.innerHTML = detailsHtml;
+        });
+    });
+});
+</script>
+{% endblock %}
