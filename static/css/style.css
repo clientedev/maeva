@@ -1011,29 +1011,48 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Logo Styles */
 .navbar-logo {
-    height: 50px;
+    height: 45px;
     width: auto;
+    max-width: 200px;
     border-radius: 8px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+    filter: brightness(1.1) contrast(1.2);
+    background: rgba(26, 26, 26, 0.8);
+    padding: 5px;
+    box-shadow: 0 2px 12px rgba(212, 175, 55, 0.3);
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    font-size: 1.3rem;
+    padding: 0.5rem 0;
 }
 
 .navbar-brand:hover .navbar-logo {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+    transform: scale(1.03);
+    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.5);
+    filter: brightness(1.2) contrast(1.3);
 }
 
 .footer-logo {
-    height: 80px;
+    height: 70px;
     width: auto;
-    border-radius: 10px;
+    max-width: 250px;
+    border-radius: 12px;
     transition: all 0.3s ease;
-    box-shadow: 0 3px 10px rgba(212, 175, 55, 0.2);
+    filter: brightness(1.1) contrast(1.2);
+    background: rgba(26, 26, 26, 0.9);
+    padding: 8px;
+    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+    border: 2px solid rgba(212, 175, 55, 0.2);
 }
 
 .footer-logo:hover {
     transform: scale(1.02);
-    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+    filter: brightness(1.2) contrast(1.3);
+    border-color: rgba(212, 175, 55, 0.4);
 }
 
 .footer-logo-section {
@@ -1042,19 +1061,28 @@ h1, h2, h3, h4, h5, h6 {
     align-items: flex-start;
 }
 
-.luxury-brand {
-    display: flex;
-    align-items: center;
-    font-size: 1.4rem;
+.footer-logo-section h5 {
+    margin-top: 1rem;
+}
+
+/* Ensure logo displays properly */
+.navbar-logo,
+.footer-logo {
+    object-fit: contain;
+    object-position: center;
 }
 
 @media (max-width: 768px) {
     .navbar-logo {
-        height: 40px;
+        height: 35px;
+        max-width: 150px;
+        padding: 3px;
     }
     
     .footer-logo {
-        height: 60px;
+        height: 55px;
+        max-width: 180px;
+        padding: 5px;
     }
     
     .footer-logo-section {
@@ -1062,7 +1090,19 @@ h1, h2, h3, h4, h5, h6 {
         text-align: center;
     }
     
-    .luxury-brand {
-        font-size: 1.2rem;
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar-logo {
+        height: 30px;
+        max-width: 120px;
+    }
+    
+    .footer-logo {
+        height: 45px;
+        max-width: 150px;
     }
 }
