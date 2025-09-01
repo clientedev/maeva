@@ -15,6 +15,120 @@
     </div>
 </section>
 
+<!-- Advanced Filters Section -->
+<section class="filters-section py-4 luxury-bg-dark">
+    <div class="container">
+        <div class="filters-container">
+            <div class="row g-3">
+                <div class="col-lg-3 col-md-6">
+                    <select class="form-select luxury-select" id="typeFilter">
+                        <option value="">Tipo de Imóvel</option>
+                        <option value="apartment">Apartamento</option>
+                        <option value="house">Casa</option>
+                        <option value="commercial">Comercial</option>
+                        <option value="penthouse">Cobertura</option>
+                        <option value="studio">Studio</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <select class="form-select luxury-select" id="locationFilter">
+                        <option value="">Localização</option>
+                        <option value="vila olimpia">Vila Olímpia</option>
+                        <option value="moema">Moema</option>
+                        <option value="itaim bibi">Itaim Bibi</option>
+                        <option value="jardins">Jardins</option>
+                        <option value="brooklin">Brooklin</option>
+                        <option value="pinheiros">Pinheiros</option>
+                        <option value="vila madalena">Vila Madalena</option>
+                        <option value="morumbi">Morumbi</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <select class="form-select luxury-select" id="priceFilter">
+                        <option value="">Faixa de Preço</option>
+                        <option value="500000">Até R$ 500.000</option>
+                        <option value="500000-1000000">R$ 500.000 - R$ 1.000.000</option>
+                        <option value="1000000-2000000">R$ 1.000.000 - R$ 2.000.000</option>
+                        <option value="2000000-5000000">R$ 2.000.000 - R$ 5.000.000</option>
+                        <option value="5000000">Acima de R$ 5.000.000</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="filter-actions">
+                        <button class="btn btn-luxury-gold w-100" onclick="applyFilters()">
+                            <i class="fas fa-search me-2"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Advanced Filters Toggle -->
+            <div class="advanced-filters-toggle mt-3">
+                <button class="btn btn-luxury-outline btn-sm" onclick="toggleAdvancedFilters()">
+                    <i class="fas fa-cog me-2"></i>Filtros Avançados
+                </button>
+            </div>
+            
+            <!-- Advanced Filters Panel -->
+            <div id="advancedFilters" class="advanced-filters mt-3" style="display: none;">
+                <div class="row g-3">
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <label class="form-label text-white-50">Quartos</label>
+                        <select class="form-select luxury-select" id="bedroomsFilter">
+                            <option value="">Qualquer</option>
+                            <option value="1">1 quarto</option>
+                            <option value="2">2 quartos</option>
+                            <option value="3">3 quartos</option>
+                            <option value="4">4+ quartos</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <label class="form-label text-white-50">Banheiros</label>
+                        <select class="form-select luxury-select" id="bathroomsFilter">
+                            <option value="">Qualquer</option>
+                            <option value="1">1 banheiro</option>
+                            <option value="2">2 banheiros</option>
+                            <option value="3">3 banheiros</option>
+                            <option value="4">4+ banheiros</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <label class="form-label text-white-50">Área (m²)</label>
+                        <select class="form-select luxury-select" id="areaFilter">
+                            <option value="">Qualquer</option>
+                            <option value="50">Até 50m²</option>
+                            <option value="50-100">50-100m²</option>
+                            <option value="100-200">100-200m²</option>
+                            <option value="200">Acima 200m²</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-6 col-md-12">
+                        <label class="form-label text-white-50">Comodidades</label>
+                        <div class="amenities-checkboxes">
+                            <div class="form-check form-check-inline luxury-check">
+                                <input class="form-check-input" type="checkbox" id="pool" value="piscina">
+                                <label class="form-check-label text-white" for="pool">Piscina</label>
+                            </div>
+                            <div class="form-check form-check-inline luxury-check">
+                                <input class="form-check-input" type="checkbox" id="gym" value="academia">
+                                <label class="form-check-label text-white" for="gym">Academia</label>
+                            </div>
+                            <div class="form-check form-check-inline luxury-check">
+                                <input class="form-check-input" type="checkbox" id="garage" value="garagem">
+                                <label class="form-check-label text-white" for="garage">Garagem</label>
+                            </div>
+                            <div class="form-check form-check-inline luxury-check">
+                                <input class="form-check-input" type="checkbox" id="garden" value="jardim">
+                                <label class="form-check-label text-white" for="garden">Jardim</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Gallery Grid -->
 <section class="py-5">
     <div class="container">

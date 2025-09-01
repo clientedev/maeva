@@ -666,3 +666,119 @@ window.addEventListener('load', function() {
     // Initialize any remaining components that need full page load
     console.log('Maeva Investimentos - All resources loaded');
 });
+
+// Advanced Filters Functionality
+function toggleAdvancedFilters() {
+    const advancedFilters = document.getElementById('advancedFilters');
+    const toggle = document.querySelector('.advanced-filters-toggle button');
+    
+    if (advancedFilters.style.display === 'none') {
+        advancedFilters.style.display = 'block';
+        toggle.innerHTML = '<i class="fas fa-cog me-2"></i>Ocultar Filtros Avançados';
+    } else {
+        advancedFilters.style.display = 'none';
+        toggle.innerHTML = '<i class="fas fa-cog me-2"></i>Filtros Avançados';
+    }
+}
+
+// Apply Filters Function
+function applyFilters() {
+    const typeFilter = document.getElementById('typeFilter')?.value || '';
+    const locationFilter = document.getElementById('locationFilter')?.value || '';
+    const priceFilter = document.getElementById('priceFilter')?.value || '';
+    const bedroomsFilter = document.getElementById('bedroomsFilter')?.value || '';
+    const bathroomsFilter = document.getElementById('bathroomsFilter')?.value || '';
+    const areaFilter = document.getElementById('areaFilter')?.value || '';
+    
+    // Get selected amenities
+    const amenities = [];
+    document.querySelectorAll('.amenities-checkboxes input[type="checkbox"]:checked').forEach(checkbox => {
+        amenities.push(checkbox.value);
+    });
+    
+    // Get all property cards
+    const propertyCards = document.querySelectorAll('.luxury-property-card');
+    let visibleCount = 0;
+    
+    propertyCards.forEach(card => {
+        const cardContainer = card.closest('.col-lg-4, .col-md-6');
+        let shouldShow = true;
+        
+        // Get property data from card
+        const cardType = card.querySelector('.property-type-badge')?.textContent.toLowerCase() || '';
+        const cardLocation = card.querySelector('.property-location')?.textContent.toLowerCase() || '';
+        const cardPrice = card.querySelector('.property-price')?.textContent || '';
+        
+        // Filter by type
+        if (typeFilter && !cardType.includes(typeFilter)) {
+            shouldShow = false;
+        }
+        
+        // Filter by location
+        if (locationFilter && !cardLocation.includes(locationFilter)) {
+            shouldShow = false;
+        }
+        
+        // Filter by price (basic implementation)
+        if (priceFilter && cardPrice) {
+            // This is a simplified price filter - in a real implementation you'd parse the price properly
+            shouldShow = shouldShow && cardPrice !== '';
+        }
+        
+        // Show/hide card
+        if (shouldShow) {
+            cardContainer.style.display = 'block';
+            visibleCount++;
+        } else {
+            cardContainer.style.display = 'none';
+        }
+    });
+    
+    // Update results count
+    updateResultsCount(visibleCount);
+}
+
+// Update results count
+function updateResultsCount(count) {
+    let resultsCounter = document.querySelector('.results-counter');
+    if (!resultsCounter) {
+        // Create results counter if it doesn't exist
+        resultsCounter = document.createElement('div');
+        resultsCounter.className = 'results-counter text-center mb-4';
+        const gallerySection = document.querySelector('.py-5 .container');
+        if (gallerySection) {
+            gallerySection.insertBefore(resultsCounter, gallerySection.firstChild);
+        }
+    }
+    
+    resultsCounter.innerHTML = `
+        <p class="text-white-50">
+            <i class="fas fa-home me-2 luxury-text-gold"></i>
+            ${count} ${count === 1 ? 'imóvel encontrado' : 'imóveis encontrados'}
+        </p>
+    `;
+}
+
+// Clear all filters
+function clearFilters() {
+    document.getElementById('typeFilter').value = '';
+    document.getElementById('locationFilter').value = '';
+    document.getElementById('priceFilter').value = '';
+    document.getElementById('bedroomsFilter').value = '';
+    document.getElementById('bathroomsFilter').value = '';
+    document.getElementById('areaFilter').value = '';
+    
+    // Clear checkboxes
+    document.querySelectorAll('.amenities-checkboxes input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    // Show all properties
+    document.querySelectorAll('.luxury-property-card').forEach(card => {
+        card.closest('.col-lg-4, .col-md-6').style.display = 'block';
+    });
+    
+    // Update count
+    const totalCount = document.querySelectorAll('.luxury-property-card').length;
+    updateResultsCount(totalCount);
+}

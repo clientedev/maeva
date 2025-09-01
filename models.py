@@ -1,6 +1,6 @@
 from app import db
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, DateTime
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean
 
 class Property(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -28,6 +28,7 @@ class Post(db.Model):
     
     def __repr__(self):
         return f'<Post {self.title}>'
+
 
 class AdminSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)

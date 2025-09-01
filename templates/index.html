@@ -107,7 +107,7 @@
                         <div class="property-overlay">
                             <div class="property-actions">
                                 <a href="{{ url_for('view_post', post_id=post.id) }}" class="btn btn-luxury-gold btn-sm">
-                                    <i class="fas fa-eye"></i> Ver
+                                    <i class="fas fa-eye"></i> Ver Post
                                 </a>
                                 <button class="btn btn-luxury-outline btn-sm share-property" 
                                         data-title="{{ post.title }}" 
@@ -118,15 +118,35 @@
                         </div>
                     </div>
                     {% elif post.video_path %}
-                    <div class="property-image-wrapper">
-                        <video class="property-image" controls>
-                            <source src="{{ url_for('uploaded_file', filename=post.video_path.split('/')[-1]) }}" type="video/mp4">
-                            Seu navegador não suporta a reprodução de vídeos.
+                    <div class="property-image-wrapper video-thumbnail">
+                        <video class="property-image" preload="metadata" muted>
+                            <source src="{{ url_for('uploaded_file', filename=post.video_path.split('/')[-1]) }}#t=0.5" type="video/mp4">
                         </video>
+                        <div class="video-play-overlay">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
                         <div class="property-overlay">
                             <div class="property-actions">
                                 <a href="{{ url_for('view_post', post_id=post.id) }}" class="btn btn-luxury-gold btn-sm">
-                                    <i class="fas fa-eye"></i> Ver
+                                    <i class="fas fa-play"></i> Ver Vídeo
+                                </a>
+                                <button class="btn btn-luxury-outline btn-sm share-property" 
+                                        data-title="{{ post.title }}" 
+                                        data-url="{{ url_for('view_post', post_id=post.id, _external=True) }}">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="property-image-wrapper no-media">
+                        <div class="post-placeholder">
+                            <i class="fas fa-newspaper"></i>
+                        </div>
+                        <div class="property-overlay">
+                            <div class="property-actions">
+                                <a href="{{ url_for('view_post', post_id=post.id) }}" class="btn btn-luxury-gold btn-sm">
+                                    <i class="fas fa-eye"></i> Ler Post
                                 </a>
                                 <button class="btn btn-luxury-outline btn-sm share-property" 
                                         data-title="{{ post.title }}" 
