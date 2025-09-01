@@ -63,11 +63,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .luxury-brand {
     font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.4rem;
+    font-weight: 600;
     color: var(--luxury-gold) !important;
     text-decoration: none;
     transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .luxury-brand:hover {
@@ -150,8 +152,8 @@ h1, h2, h3, h4, h5, h6 {
 /* Hero Section */
 .hero-section {
     height: 100vh;
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-                url('https://pixabay.com/get/gc410871e93c2688a35f695c9af9c947acfbe5eba18205176eaff8f6fa3b39ab0f27a16842cb3d4397cbe29a092f849b6580b08c8e98aadb2d03e8568e9888c04_1280.jpg');
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.6)),
+                url('/static/images/hero-background.jpg');
     background-size: cover;
     background-position: center;
     display: flex;
