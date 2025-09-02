@@ -1,6 +1,6 @@
 from app import db
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, LargeBinary
 
 class Property(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -8,6 +8,9 @@ class Property(db.Model):
     description = db.Column(db.Text)
     image_path = db.Column(db.String(300))  # Main image for backward compatibility
     video_path = db.Column(db.String(300))
+    video_data = db.Column(db.LargeBinary)  # Store video binary data
+    video_filename = db.Column(db.String(255))  # Original filename
+    video_content_type = db.Column(db.String(50))  # MIME type
     property_type = db.Column(db.String(100))  # apartment, house, commercial
     price = db.Column(db.String(100))
     location = db.Column(db.String(200))
@@ -20,7 +23,10 @@ class Property(db.Model):
 class PropertyImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
-    image_path = db.Column(db.String(300), nullable=False)
+    image_path = db.Column(db.String(300), nullable=False)  # Keep for backward compatibility
+    image_data = db.Column(db.LargeBinary, nullable=False)  # Store image binary data
+    filename = db.Column(db.String(255), nullable=False)  # Original filename
+    content_type = db.Column(db.String(50), nullable=False)  # MIME type
     is_primary = db.Column(db.Boolean, default=False)
     order_index = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -47,6 +53,12 @@ class Post(db.Model):
     content = db.Column(db.Text)
     image_path = db.Column(db.String(300))
     video_path = db.Column(db.String(300))
+    image_data = db.Column(db.LargeBinary)  # Store image binary data
+    image_filename = db.Column(db.String(255))  # Original filename
+    image_content_type = db.Column(db.String(50))  # MIME type
+    video_data = db.Column(db.LargeBinary)  # Store video binary data
+    video_filename = db.Column(db.String(255))  # Original filename
+    video_content_type = db.Column(db.String(50))  # MIME type
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     featured = db.Column(db.Boolean, default=False)
     

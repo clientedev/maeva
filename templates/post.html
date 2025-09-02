@@ -18,12 +18,25 @@
                     </header>
                     
                     <!-- Post Media -->
-                    {% if post.video_path %}
+                    {% if post.video_data %}
+                    <div class="post-media mb-4">
+                        <video class="w-100 rounded" controls style="max-height: 500px;">
+                            <source src="{{ url_for('serve_post_video', post_id=post.id) }}" type="video/mp4">
+                            Seu navegador não suporta a reprodução de vídeos.
+                        </video>
+                    </div>
+                    {% elif post.video_path %}
                     <div class="post-media mb-4">
                         <video class="w-100 rounded" controls style="max-height: 500px;">
                             <source src="{{ url_for('uploaded_file', filename=post.video_path.split('/')[-1]) }}" type="video/mp4">
                             Seu navegador não suporta a reprodução de vídeos.
                         </video>
+                    </div>
+                    {% elif post.image_data %}
+                    <div class="post-media mb-4">
+                        <img src="{{ url_for('serve_post_image', post_id=post.id) }}" 
+                             class="img-fluid rounded w-100" alt="{{ post.title }}"
+                             style="max-height: 500px; object-fit: cover;">
                     </div>
                     {% elif post.image_path %}
                     <div class="post-media mb-4">
@@ -77,7 +90,19 @@
             {% for related_post in related_posts %}
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="luxury-property-card">
-                    {% if related_post.image_path %}
+                    {% if related_post.image_data %}
+                    <div class="property-image-wrapper">
+                        <img src="{{ url_for('serve_post_image', post_id=related_post.id) }}" 
+                             class="property-image" alt="{{ related_post.title }}">
+                        <div class="property-overlay">
+                            <div class="property-actions">
+                                <a href="{{ url_for('view_post', post_id=related_post.id) }}" class="btn btn-luxury-gold btn-sm">
+                                    <i class="fas fa-eye"></i> Ver
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% elif related_post.image_path %}
                     <div class="property-image-wrapper">
                         <img src="{{ url_for('uploaded_file', filename=related_post.image_path.split('/')[-1]) }}" 
                              class="property-image" alt="{{ related_post.title }}">

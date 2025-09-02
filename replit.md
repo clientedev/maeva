@@ -34,17 +34,23 @@ Preferred communication style: Simple, everyday language.
 - **Security**: Hard-coded admin password (4731v8) with session token generation using UUID4
 
 ### File Management System
-- **Upload Strategy**: Local file storage in dedicated uploads directory
+- **Upload Strategy**: PostgreSQL database storage for all uploaded files with binary data storage
 - **File Validation**: Extension-based filtering for images and videos (png, jpg, jpeg, gif, mp4, avi, mov)
-- **Size Limits**: 16MB maximum file upload size
+- **Size Limits**: 50MB maximum file upload size optimized for database storage
 - **File Security**: Werkzeug secure_filename implementation for safe file handling
-- **Static File Serving**: Flask static file serving for uploaded content
+- **Database Storage**: Files stored as BLOB data in PostgreSQL with metadata (filename, content-type)
+- **File Serving**: Custom routes serving files directly from PostgreSQL database
+- **Backward Compatibility**: Maintains compatibility with existing local file references
 
 ### Database Design
-- **Property Model**: Core entity storing listing information including title, description, media paths, pricing, and location data
+- **Property Model**: Core entity with title, description, pricing, location data, and binary video storage
+- **PropertyImage Model**: Dedicated table for multiple property images with binary data storage and ordering
+- **Post Model**: Blog posts with binary image and video data storage capabilities
 - **AdminSession Model**: Authentication tracking with session tokens and expiration timestamps
+- **File Storage**: Binary data (LargeBinary) columns for images and videos with content-type metadata
 - **Schema Strategy**: SQLAlchemy with automatic table creation and model relationships
 - **Database Flexibility**: Environment-configurable database URL with SQLite default for development
+- **Cloud Compatibility**: Full PostgreSQL binary storage suitable for Railway and other cloud platforms
 
 ## External Dependencies
 
