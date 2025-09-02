@@ -25,12 +25,8 @@ class Property(db.Model):
         return self.video_data is not None
     
     def has_video_file(self):
-        """Check if this instance has video file stored locally (backward compatibility)"""
-        return self.video_path is not None and os.path.exists(self.video_path) if self.video_path else False
-    
-    def has_video_file(self):
         """Check if this instance has video file stored locally"""
-        return self.video_path is not None
+        return self.video_path is not None and os.path.exists(self.video_path) if self.video_path else False
     
     def __repr__(self):
         return f'<Property {self.title}>'
