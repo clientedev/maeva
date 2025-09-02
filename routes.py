@@ -109,65 +109,104 @@ def add_property():
         session.pop('admin_token', None)
         return redirect(url_for('admin_login'))
     
-    title = request.form.get('title')
-    description = request.form.get('description')
-    property_type = request.form.get('property_type')
-    price = request.form.get('price')
-    location = request.form.get('location')
-    featured = 'featured' in request.form
-    
-    video_path = None
-    
-    # Handle video upload
-    if 'video' in request.files:
-        file = request.files['video']
-        if file and file.filename and file.filename != '' and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            unique_filename = f"{uuid.uuid4()}_{filename}"
-            video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-            file.save(video_path)
-    
-    # Create property first
-    property_obj = Property(
-        title=title,
-        description=description,
-        video_path=video_path,
-        property_type=property_type,
-        price=price,
-        location=location,
-        featured=featured
-    )
-    
-    db.session.add(property_obj)
-    db.session.commit()
-    
-    # Handle multiple image uploads
-    uploaded_images = []
-    if 'images' in request.files:
-        files = request.files.getlist('images')
-        for i, file in enumerate(files[:10]):  # Limit to 10 images
+    try:
+        title = request.form.get('title')
+        description = request.form.get('description')
+        property_type = request.form.get('property_type')
+        price = request.form.get('price')
+        location = request.form.get('location')
+        featured = 'featured' in request.form
+        
+        if not title:
+            flash('Título é obrigatório!', 'error')
+            return redirect(url_for('admin_panel'))
+        
+        video_path = None
+        
+        # Handle video upload with error handling
+        if 'video' in request.files:
+            file = request.files['video']
             if file and file.filename and file.filename != '' and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                unique_filename = f"{uuid.uuid4()}_{filename}"
-                image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-                file.save(image_path)
+                # Check file size (max 100MB for videos)
+                file_size = len(file.read())
+                if file_size > 100 * 1024 * 1024:
+                    flash('Vídeo muito grande. Máximo 100MB permitido.', 'error')
+                    return redirect(url_for('admin_panel'))
+                file.seek(0)  # Reset file pointer
                 
-                # Create PropertyImage record
-                property_image = PropertyImage(
-                    property_id=property_obj.id,
-                    image_path=image_path,
-                    is_primary=(i == 0),  # First image is primary
-                    order_index=i
-                )
-                db.session.add(property_image)
-                uploaded_images.append(image_path)
+                try:
+                    filename = secure_filename(file.filename)
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                    print(f"Attempting to save property video: {video_path} ({file_size} bytes)")
+                    file.save(video_path)
+                    print(f"Property video saved successfully: {video_path}")
+                except Exception as e:
+                    print(f"Error saving property video: {e}")
+                    flash('Erro ao fazer upload do vídeo. Verifique o tamanho e formato.', 'error')
+                    return redirect(url_for('admin_panel'))
+        
+        # Create property first
+        property_obj = Property(
+            title=title,
+            description=description,
+            video_path=video_path,
+            property_type=property_type,
+            price=price,
+            location=location,
+            featured=featured
+        )
+        
+        db.session.add(property_obj)
+        db.session.commit()
+        
+        # Handle multiple image uploads with error handling
+        uploaded_images = []
+        if 'images' in request.files:
+            files = request.files.getlist('images')
+            for i, file in enumerate(files[:10]):  # Limit to 10 images
+                if file and file.filename and file.filename != '' and allowed_file(file.filename):
+                    # Check image file size (max 20MB per image)
+                    file_size = len(file.read())
+                    if file_size > 20 * 1024 * 1024:
+                        flash(f'Imagem {file.filename} muito grande. Máximo 20MB por imagem.', 'error')
+                        return redirect(url_for('admin_panel'))
+                    file.seek(0)  # Reset file pointer
+                    
+                    try:
+                        filename = secure_filename(file.filename)
+                        unique_filename = f"{uuid.uuid4()}_{filename}"
+                        image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        file.save(image_path)
+                        
+                        # Create PropertyImage record
+                        property_image = PropertyImage(
+                            property_id=property_obj.id,
+                            image_path=image_path,
+                            is_primary=(i == 0),  # First image is primary
+                            order_index=i
+                        )
+                        db.session.add(property_image)
+                        uploaded_images.append(image_path)
+                        print(f"Property image {i+1} saved successfully: {image_path}")
+                    except Exception as e:
+                        print(f"Error saving property image {i+1}: {e}")
+                        flash(f'Erro ao fazer upload da imagem {file.filename}', 'error')
+                        return redirect(url_for('admin_panel'))
         
         # Set first image as main image for backward compatibility
         if uploaded_images:
             property_obj.image_path = uploaded_images[0]
             db.session.commit()
     
-    flash('Propriedade adicionada com sucesso!', 'success')
+        flash('Propriedade adicionada com sucesso!', 'success')
+        print(f"Property created successfully: {property_obj.id}")
+        
+    except Exception as e:
+        print(f"Error in add_property: {e}")
+        db.session.rollback()
+        flash('Erro ao criar propriedade. Tente novamente.', 'error')
+    
     return redirect(url_for('admin_panel'))
 
 @app.route('/admin/delete-property/<int:property_id>')
@@ -219,42 +258,82 @@ def add_post():
         session.pop('admin_token', None)
         return redirect(url_for('admin_login'))
     
-    title = request.form.get('title')
-    content = request.form.get('content')
-    featured = 'featured' in request.form
+    try:
+        title = request.form.get('title')
+        content = request.form.get('content')
+        featured = 'featured' in request.form
+        
+        if not title or not content:
+            flash('Título e conteúdo são obrigatórios!', 'error')
+            return redirect(url_for('admin_panel'))
+        
+        image_path = None
+        video_path = None
+        
+        # Handle image upload with error handling
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename and file.filename != '' and allowed_file(file.filename):
+                # Check file size (max 50MB for images)
+                if len(file.read()) > 50 * 1024 * 1024:
+                    flash('Imagem muito grande. Máximo 50MB permitido.', 'error')
+                    return redirect(url_for('admin_panel'))
+                file.seek(0)  # Reset file pointer
+                
+                try:
+                    filename = secure_filename(file.filename)
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                    file.save(image_path)
+                    print(f"Image saved successfully: {image_path}")
+                except Exception as e:
+                    print(f"Error saving image: {e}")
+                    flash('Erro ao fazer upload da imagem. Tente novamente.', 'error')
+                    return redirect(url_for('admin_panel'))
+        
+        # Handle video upload with error handling and size limits
+        if 'video' in request.files:
+            file = request.files['video']
+            if file and file.filename and file.filename != '' and allowed_file(file.filename):
+                # Check file size (max 100MB for videos on Railway)
+                file_size = len(file.read())
+                if file_size > 100 * 1024 * 1024:
+                    flash('Vídeo muito grande. Máximo 100MB permitido.', 'error')
+                    return redirect(url_for('admin_panel'))
+                file.seek(0)  # Reset file pointer
+                
+                try:
+                    filename = secure_filename(file.filename)
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                    print(f"Attempting to save video: {video_path} ({file_size} bytes)")
+                    file.save(video_path)
+                    print(f"Video saved successfully: {video_path}")
+                except Exception as e:
+                    print(f"Error saving video: {e}")
+                    flash('Erro ao fazer upload do vídeo. Verifique o tamanho e formato.', 'error')
+                    return redirect(url_for('admin_panel'))
+        
+        # Create post
+        post_obj = Post(
+            title=title,
+            content=content,
+            image_path=image_path,
+            video_path=video_path,
+            featured=featured
+        )
+        
+        db.session.add(post_obj)
+        db.session.commit()
+        
+        flash('Post adicionado com sucesso!', 'success')
+        print(f"Post created successfully: {post_obj.id}")
+        
+    except Exception as e:
+        print(f"Error in add_post: {e}")
+        db.session.rollback()
+        flash('Erro ao criar post. Tente novamente.', 'error')
     
-    image_path = None
-    video_path = None
-    
-    # Handle file uploads
-    if 'image' in request.files:
-        file = request.files['image']
-        if file and file.filename and file.filename != '' and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            unique_filename = f"{uuid.uuid4()}_{filename}"
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-            file.save(image_path)
-    
-    if 'video' in request.files:
-        file = request.files['video']
-        if file and file.filename and file.filename != '' and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            unique_filename = f"{uuid.uuid4()}_{filename}"
-            video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-            file.save(video_path)
-    
-    post_obj = Post(
-        title=title,
-        content=content,
-        image_path=image_path,
-        video_path=video_path,
-        featured=featured
-    )
-    
-    db.session.add(post_obj)
-    db.session.commit()
-    
-    flash('Post adicionado com sucesso!', 'success')
     return redirect(url_for('admin_panel'))
 
 @app.route('/admin/delete-post/<int:post_id>')

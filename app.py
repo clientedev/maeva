@@ -31,9 +31,9 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "connect_args": {"check_same_thread": False} if database_url.startswith("sqlite:") else {},
 }
 
-# Upload configuration
+# Upload configuration - Railway optimized
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB max file size for videos
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size optimized for Railway
 
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
