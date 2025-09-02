@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["python311", "pip"]
+
+[phases.install]
+cmds = ["pip install -r pyproject.toml"]
+
+[phases.build]
+cmds = ["echo 'Build complete'"]
+
+[start]
+cmd = "python migrate_db.py && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --keep-alive 2 main:app"

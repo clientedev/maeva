@@ -6,7 +6,7 @@ packages = ["file", "freetype", "lcms2", "libimagequant", "libjpeg", "libtiff", 
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["./start.sh"]
+run = ["python", "migrate_db.py && gunicorn --bind 0.0.0.0:5000 --workers 1 --timeout 120 main:app"]
 build = ["python", "migrate_db.py"]
 
 [workflows]

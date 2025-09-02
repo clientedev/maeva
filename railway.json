@@ -4,8 +4,9 @@
     "builder": "nixpacks"
   },
   "deploy": {
-    "startCommand": "./start.sh",
+    "startCommand": "python migrate_db.py && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 main:app",
     "healthcheckPath": "/",
-    "healthcheckTimeout": 100
+    "healthcheckTimeout": 300,
+    "restartPolicyType": "always"
   }
 }
