@@ -123,23 +123,25 @@ def add_property():
         
         video_path = None
         
-        # Handle video upload - save to filesystem for now (backward compatible)
+        # Handle video upload - optimized for performance
         if 'video' in request.files:
             file = request.files['video']
             if file and file.filename and file.filename != '' and allowed_file(file.filename):
-                # Check file size (max 50MB for videos)
-                file_size = len(file.read())
+                # Efficient file size check without loading into memory
+                file.seek(0, 2)  # Seek to end
+                file_size = file.tell()  # Get size
+                file.seek(0)  # Reset to beginning
+                
                 if file_size > 50 * 1024 * 1024:
                     flash('Vídeo muito grande. Máximo 50MB permitido.', 'error')
                     return redirect(url_for('admin_panel'))
-                file.seek(0)  # Reset file pointer
                 
                 try:
                     filename = secure_filename(file.filename)
                     unique_filename = f"{uuid.uuid4()}_{filename}"
                     video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
                     file.save(video_path)
-                    print(f"Property video saved to filesystem: {filename} ({file_size} bytes)")
+                    print(f"Property video saved: {filename} ({file_size} bytes)")
                 except Exception as e:
                     print(f"Error saving property video: {e}")
                     flash('Erro ao fazer upload do vídeo. Verifique o tamanho e formato.', 'error')
@@ -159,18 +161,20 @@ def add_property():
         db.session.add(property_obj)
         db.session.commit()
         
-        # Handle multiple image uploads - save to filesystem for now (backward compatible)
+        # Handle multiple image uploads - optimized for performance
         uploaded_images = []
         if 'images' in request.files:
             files = request.files.getlist('images')
             for i, file in enumerate(files[:10]):  # Limit to 10 images
                 if file and file.filename and file.filename != '' and allowed_file(file.filename):
-                    # Check image file size (max 20MB per image)
-                    file_size = len(file.read())
+                    # Efficient file size check without loading into memory
+                    file.seek(0, 2)  # Seek to end
+                    file_size = file.tell()  # Get size
+                    file.seek(0)  # Reset to beginning
+                    
                     if file_size > 20 * 1024 * 1024:
                         flash(f'Imagem {file.filename} muito grande. Máximo 20MB por imagem.', 'error')
                         return redirect(url_for('admin_panel'))
-                    file.seek(0)  # Reset file pointer
                     
                     try:
                         filename = secure_filename(file.filename)
@@ -187,7 +191,7 @@ def add_property():
                         )
                         db.session.add(property_image)
                         uploaded_images.append(image_path)
-                        print(f"Property image {i+1} saved to filesystem: {filename} ({file_size} bytes)")
+                        print(f"Property image {i+1} saved: {filename} ({file_size} bytes)")
                     except Exception as e:
                         print(f"Error saving property image {i+1}: {e}")
                         flash(f'Erro ao fazer upload da imagem {file.filename}', 'error')
@@ -301,46 +305,50 @@ def add_post():
         image_path = None
         video_path = None
         
-        # Handle image upload - save to filesystem for now (backward compatible)
+        # Handle image upload - optimized for performance
         if 'image' in request.files:
             file = request.files['image']
             if file and file.filename and file.filename != '' and allowed_file(file.filename):
                 try:
-                    # Check file size
-                    file_size = len(file.read())
+                    # Efficient file size check without loading into memory
+                    file.seek(0, 2)  # Seek to end
+                    file_size = file.tell()  # Get size
+                    file.seek(0)  # Reset to beginning
+                    
                     if file_size > 20 * 1024 * 1024:  # 20MB limit
                         flash('Imagem muito grande. Máximo 20MB permitido.', 'error')
                         return redirect(url_for('admin_panel'))
-                    file.seek(0)  # Reset file pointer
                     
                     filename = secure_filename(file.filename)
                     unique_filename = f"{uuid.uuid4()}_{filename}"
                     image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
                     file.save(image_path)
-                    print(f"Post image saved to filesystem: {filename} ({file_size} bytes)")
+                    print(f"Post image saved: {filename} ({file_size} bytes)")
                     
                 except Exception as e:
                     print(f"Error processing image upload: {e}")
                     flash('Erro ao fazer upload da imagem. Tente novamente.', 'error')
                     return redirect(url_for('admin_panel'))
         
-        # Handle video upload - save to filesystem for now (backward compatible)
+        # Handle video upload - optimized for performance
         if 'video' in request.files:
             file = request.files['video']
             if file and file.filename and file.filename != '' and allowed_file(file.filename):
                 try:
-                    # Check file size
-                    file_size = len(file.read())
+                    # Efficient file size check without loading into memory
+                    file.seek(0, 2)  # Seek to end
+                    file_size = file.tell()  # Get size
+                    file.seek(0)  # Reset to beginning
+                    
                     if file_size > 50 * 1024 * 1024:  # 50MB limit
                         flash('Vídeo muito grande. Máximo 50MB permitido.', 'error')
                         return redirect(url_for('admin_panel'))
-                    file.seek(0)  # Reset file pointer
                     
                     filename = secure_filename(file.filename)
                     unique_filename = f"{uuid.uuid4()}_{filename}"
                     video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
                     file.save(video_path)
-                    print(f"Post video saved to filesystem: {filename} ({file_size} bytes)")
+                    print(f"Post video saved: {filename} ({file_size} bytes)")
                     
                 except Exception as e:
                     print(f"Error processing video upload: {e}")
