@@ -82,6 +82,10 @@
                                     </p>
                                     
                                     <div class="property-actions">
+                                        <a href="{{ url_for('edit_property', property_id=property.id) }}" 
+                                           class="btn btn-warning btn-sm me-2">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
                                         <a href="{{ url_for('delete_property', property_id=property.id) }}" 
                                            class="btn btn-danger btn-sm"
                                            onclick="return confirm('Tem certeza que deseja excluir esta propriedade?')">
@@ -229,6 +233,10 @@
                                     </p>
                                     
                                     <div class="property-actions">
+                                        <a href="{{ url_for('edit_post', post_id=post.id) }}" 
+                                           class="btn btn-warning btn-sm me-2">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
                                         <a href="{{ url_for('delete_post', post_id=post.id) }}" 
                                            class="btn btn-danger btn-sm"
                                            onclick="return confirm('Tem certeza que deseja excluir este post?')">
@@ -298,6 +306,204 @@
                             </div>
                         </form>
                     </div>
+                
+                <!-- Edit Property Form -->
+                {% if edit_property %}
+                <div id="edit-property-section" class="admin-section-content">
+                    <div class="section-header">
+                        <h2 class="luxury-heading">Editar Propriedade</h2>
+                        <a href="{{ url_for('admin_panel') }}" class="btn btn-luxury-outline">
+                            <i class="fas fa-arrow-left me-1"></i>Voltar
+                        </a>
+                    </div>
+                    
+                    <div class="add-property-form">
+                        <form action="{{ url_for('edit_property', property_id=edit_property.id) }}" method="POST" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-lg-6 mb-3">
+                                    <label for="edit-title" class="form-label">Título*</label>
+                                    <input type="text" class="form-control luxury-input" 
+                                           id="edit-title" name="title" value="{{ edit_property.title }}" required>
+                                </div>
+                                
+                                <div class="col-lg-6 mb-3">
+                                    <label for="edit-property_type" class="form-label">Tipo de Propriedade</label>
+                                    <select class="form-control luxury-input" id="edit-property_type" name="property_type">
+                                        <option value="">Selecione...</option>
+                                        <option value="apartamento" {% if edit_property.property_type == 'apartamento' %}selected{% endif %}>Apartamento</option>
+                                        <option value="casa" {% if edit_property.property_type == 'casa' %}selected{% endif %}>Casa</option>
+                                        <option value="cobertura" {% if edit_property.property_type == 'cobertura' %}selected{% endif %}>Cobertura</option>
+                                        <option value="comercial" {% if edit_property.property_type == 'comercial' %}selected{% endif %}>Comercial</option>
+                                        <option value="terreno" {% if edit_property.property_type == 'terreno' %}selected{% endif %}>Terreno</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-lg-6 mb-3">
+                                    <label for="edit-location" class="form-label">Localização</label>
+                                    <input type="text" class="form-control luxury-input" 
+                                           id="edit-location" name="location" 
+                                           value="{{ edit_property.location or '' }}" 
+                                           placeholder="Ex: Jardins, São Paulo">
+                                </div>
+                                
+                                <div class="col-lg-6 mb-3">
+                                    <label for="edit-price" class="form-label">Preço</label>
+                                    <input type="text" class="form-control luxury-input" 
+                                           id="edit-price" name="price" 
+                                           value="{{ edit_property.price or '' }}" 
+                                           placeholder="Ex: R$ 1.500.000">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="edit-description" class="form-label">Descrição</label>
+                                <textarea class="form-control luxury-input" id="edit-description" 
+                                          name="description" rows="4" 
+                                          placeholder="Descreva os detalhes do imóvel...">{{ edit_property.description or '' }}</textarea>
+                            </div>
+                            
+                            {% if edit_property.image_path or edit_property.images %}
+                            <div class="mb-3">
+                                <label class="form-label">Imagens Atuais</label>
+                                <div class="current-images mb-2">
+                                    {% if edit_property.images %}
+                                        {% for img in edit_property.images %}
+                                        <div class="current-image-item d-inline-block me-2 mb-2">
+                                            <img src="{{ url_for('uploaded_file', filename=img.image_path.split('/')[-1]) }}" 
+                                                 alt="Property image" style="width: 100px; height: 80px; object-fit: cover; border-radius: 4px;">
+                                        </div>
+                                        {% endfor %}
+                                    {% elif edit_property.image_path %}
+                                        <div class="current-image-item d-inline-block me-2 mb-2">
+                                            <img src="{{ url_for('uploaded_file', filename=edit_property.image_path.split('/')[-1]) }}" 
+                                                 alt="{{ edit_property.title }}" style="width: 100px; height: 80px; object-fit: cover; border-radius: 4px;">
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="row">
+                                <div class="col-lg-6 mb-3">
+                                    <label for="edit-images" class="form-label">Novas Imagens (até 10 fotos)</label>
+                                    <input type="file" class="form-control luxury-input" 
+                                           id="edit-images" name="images" accept="image/*" multiple>
+                                    <div class="form-text text-white-50">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Selecionar novas imagens substituirá todas as imagens atuais.
+                                    </div>
+                                </div>
+                                
+                                <div class="col-lg-6 mb-3">
+                                    <label for="edit-video" class="form-label">Vídeo</label>
+                                    {% if edit_property.video_path %}
+                                    <div class="current-video mb-2">
+                                        <p class="text-white-50 mb-1">Vídeo atual: {{ edit_property.video_path.split('/')[-1] }}</p>
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control luxury-input" 
+                                           id="edit-video" name="video" accept="video/*">
+                                    <div class="form-text text-white-50">Formatos: MP4, AVI, MOV (máx. 100MB)</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check luxury-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="edit-featured" name="featured" {% if edit_property.featured %}checked{% endif %}>
+                                    <label class="form-check-label text-white" for="edit-featured">
+                                        Propriedade em destaque (aparece na página inicial)
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-luxury-gold btn-lg">
+                                    <i class="fas fa-save me-2"></i>Atualizar Propriedade
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Edit Post Form -->
+                {% if edit_post %}
+                <div id="edit-post-section" class="admin-section-content">
+                    <div class="section-header">
+                        <h2 class="luxury-heading">Editar Post</h2>
+                        <a href="{{ url_for('admin_panel') }}" class="btn btn-luxury-outline">
+                            <i class="fas fa-arrow-left me-1"></i>Voltar
+                        </a>
+                    </div>
+                    
+                    <div class="admin-form-wrapper">
+                        <form method="POST" action="{{ url_for('edit_post', post_id=edit_post.id) }}" enctype="multipart/form-data" class="admin-form">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit-post-title" class="form-label text-white">Título *</label>
+                                    <input type="text" class="form-control admin-input" id="edit-post-title" 
+                                           name="title" value="{{ edit_post.title }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="edit-post-content" class="form-label text-white">Conteúdo *</label>
+                                <textarea class="form-control admin-input" id="edit-post-content" 
+                                          name="content" rows="6" required>{{ edit_post.content or '' }}</textarea>
+                            </div>
+                            
+                            {% if edit_post.image_path %}
+                            <div class="mb-3">
+                                <label class="form-label text-white">Imagem Atual</label>
+                                <div class="current-image mb-2">
+                                    <img src="{{ url_for('uploaded_file', filename=edit_post.image_path.split('/')[-1]) }}" 
+                                         alt="{{ edit_post.title }}" style="width: 150px; height: 120px; object-fit: cover; border-radius: 4px;">
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit-post-image" class="form-label text-white">Nova Imagem</label>
+                                    <input type="file" class="form-control admin-input" id="edit-post-image" name="image" accept="image/*">
+                                    <div class="form-text text-white-50">PNG, JPG ou GIF até 50MB</div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit-post-video" class="form-label text-white">{% if edit_post.video_path %}Novo {% endif %}Vídeo</label>
+                                    {% if edit_post.video_path %}
+                                    <div class="current-video mb-2">
+                                        <p class="text-white-50 mb-1">Vídeo atual: {{ edit_post.video_path.split('/')[-1] }}</p>
+                                    </div>
+                                    {% endif %}
+                                    <input type="file" class="form-control admin-input" id="edit-post-video" name="video" accept="video/*">
+                                    <div class="form-text text-white-50">MP4, AVI ou MOV até 100MB</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="edit-post-featured" 
+                                           name="featured" {% if edit_post.featured %}checked{% endif %}>
+                                    <label class="form-check-label text-white" for="edit-post-featured">
+                                        Post em destaque (aparece na página inicial)
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-luxury-gold btn-lg">
+                                    <i class="fas fa-save me-2"></i>Atualizar Post
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+                
                 </div>
             </div>
         </div>
@@ -319,10 +525,16 @@ function showSection(sectionName) {
     });
     
     // Show selected section
-    document.getElementById(sectionName + '-section').style.display = 'block';
+    const section = document.getElementById(sectionName + '-section');
+    if (section) {
+        section.style.display = 'block';
+    }
     
     // Add active class to selected nav link
-    document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+    const navLink = document.querySelector(`[data-section="${sectionName}"]`);
+    if (navLink) {
+        navLink.classList.add('active');
+    }
 }
 
 // Handle navigation clicks

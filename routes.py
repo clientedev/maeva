@@ -412,6 +412,220 @@ def delete_post(post_id):
     
     return redirect(url_for('admin_panel'))
 
+@app.route('/admin/edit-property/<int:property_id>', methods=['GET', 'POST'])
+def edit_property(property_id):
+    # Check admin authentication
+    admin_token = session.get('admin_token')
+    if not admin_token:
+        return redirect(url_for('admin_login'))
+    
+    admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
+    if not admin_session or admin_session.expires_at < datetime.utcnow():
+        session.pop('admin_token', None)
+        return redirect(url_for('admin_login'))
+    
+    property_obj = Property.query.get_or_404(property_id)
+    
+    if request.method == 'POST':
+        try:
+            # Update property fields
+            property_obj.title = request.form.get('title') or property_obj.title
+            property_obj.description = request.form.get('description') or property_obj.description
+            property_obj.property_type = request.form.get('property_type') or property_obj.property_type
+            property_obj.price = request.form.get('price') or property_obj.price
+            property_obj.location = request.form.get('location') or property_obj.location
+            property_obj.featured = 'featured' in request.form
+            
+            # Handle new video upload
+            if 'video' in request.files:
+                file = request.files['video']
+                if file and file.filename and file.filename != '' and allowed_file(file.filename):
+                    # Delete old video if exists
+                    if property_obj.video_path and os.path.exists(property_obj.video_path):
+                        try:
+                            os.remove(property_obj.video_path)
+                        except Exception as e:
+                            print(f"Error deleting old video: {e}")
+                    
+                    # Check file size
+                    file_size = len(file.read())
+                    if file_size > 100 * 1024 * 1024:
+                        flash('Vídeo muito grande. Máximo 100MB permitido.', 'error')
+                        return redirect(url_for('admin_panel'))
+                    file.seek(0)
+                    
+                    try:
+                        filename = secure_filename(file.filename)
+                        unique_filename = f"{uuid.uuid4()}_{filename}"
+                        video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        file.save(video_path)
+                        property_obj.video_path = video_path
+                        print(f"Updated property video: {video_path}")
+                    except Exception as e:
+                        print(f"Error saving new video: {e}")
+                        flash('Erro ao fazer upload do vídeo.', 'error')
+                        return redirect(url_for('admin_panel'))
+            
+            # Handle new images upload
+            if 'images' in request.files:
+                files = request.files.getlist('images')
+                if files and files[0].filename:  # Check if files were actually selected
+                    # Delete old images if new ones are uploaded
+                    old_images = PropertyImage.query.filter_by(property_id=property_id).all()
+                    for img in old_images:
+                        if img.image_path and os.path.exists(img.image_path):
+                            try:
+                                os.remove(img.image_path)
+                            except Exception as e:
+                                print(f"Error deleting old image: {e}")
+                        db.session.delete(img)
+                    
+                    # Add new images
+                    uploaded_images = []
+                    for i, file in enumerate(files[:10]):
+                        if file and file.filename and allowed_file(file.filename):
+                            file_size = len(file.read())
+                            if file_size > 20 * 1024 * 1024:
+                                flash(f'Imagem {file.filename} muito grande. Máximo 20MB por imagem.', 'error')
+                                return redirect(url_for('admin_panel'))
+                            file.seek(0)
+                            
+                            try:
+                                filename = secure_filename(file.filename)
+                                unique_filename = f"{uuid.uuid4()}_{filename}"
+                                image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                                file.save(image_path)
+                                
+                                property_image = PropertyImage(
+                                    property_id=property_obj.id,
+                                    image_path=image_path,
+                                    is_primary=(i == 0),
+                                    order_index=i
+                                )
+                                db.session.add(property_image)
+                                uploaded_images.append(image_path)
+                            except Exception as e:
+                                print(f"Error saving new image: {e}")
+                                flash('Erro ao fazer upload de imagem.', 'error')
+                                return redirect(url_for('admin_panel'))
+                    
+                    # Update main image for backward compatibility
+                    if uploaded_images:
+                        property_obj.image_path = uploaded_images[0]
+            
+            db.session.commit()
+            flash('Propriedade atualizada com sucesso!', 'success')
+            print(f"Property {property_id} updated successfully")
+            
+        except Exception as e:
+            print(f"Error updating property: {e}")
+            db.session.rollback()
+            flash('Erro ao atualizar propriedade. Tente novamente.', 'error')
+        
+        return redirect(url_for('admin_panel'))
+    
+    # GET request - render edit form
+    properties = Property.query.order_by(Property.created_at.desc()).all()
+    posts = Post.query.order_by(Post.created_at.desc()).all()
+    return render_template('admin_panel.html', properties=properties, posts=posts, edit_property=property_obj)
+
+@app.route('/admin/edit-post/<int:post_id>', methods=['GET', 'POST'])
+def edit_post(post_id):
+    # Check admin authentication
+    admin_token = session.get('admin_token')
+    if not admin_token:
+        return redirect(url_for('admin_login'))
+    
+    admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
+    if not admin_session or admin_session.expires_at < datetime.utcnow():
+        session.pop('admin_token', None)
+        return redirect(url_for('admin_login'))
+    
+    post_obj = Post.query.get_or_404(post_id)
+    
+    if request.method == 'POST':
+        try:
+            # Update post fields
+            post_obj.title = request.form.get('title') or post_obj.title
+            post_obj.content = request.form.get('content') or post_obj.content
+            post_obj.featured = 'featured' in request.form
+            
+            # Handle new image upload
+            if 'image' in request.files:
+                file = request.files['image']
+                if file and file.filename and file.filename != '' and allowed_file(file.filename):
+                    # Delete old image
+                    if post_obj.image_path and os.path.exists(post_obj.image_path):
+                        try:
+                            os.remove(post_obj.image_path)
+                        except Exception as e:
+                            print(f"Error deleting old post image: {e}")
+                    
+                    # Check file size
+                    file_size = len(file.read())
+                    if file_size > 50 * 1024 * 1024:
+                        flash('Imagem muito grande. Máximo 50MB permitido.', 'error')
+                        return redirect(url_for('admin_panel'))
+                    file.seek(0)
+                    
+                    try:
+                        filename = secure_filename(file.filename)
+                        unique_filename = f"{uuid.uuid4()}_{filename}"
+                        image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        file.save(image_path)
+                        post_obj.image_path = image_path
+                        print(f"Updated post image: {image_path}")
+                    except Exception as e:
+                        print(f"Error saving new post image: {e}")
+                        flash('Erro ao fazer upload da imagem.', 'error')
+                        return redirect(url_for('admin_panel'))
+            
+            # Handle new video upload
+            if 'video' in request.files:
+                file = request.files['video']
+                if file and file.filename and file.filename != '' and allowed_file(file.filename):
+                    # Delete old video
+                    if post_obj.video_path and os.path.exists(post_obj.video_path):
+                        try:
+                            os.remove(post_obj.video_path)
+                        except Exception as e:
+                            print(f"Error deleting old post video: {e}")
+                    
+                    # Check file size
+                    file_size = len(file.read())
+                    if file_size > 100 * 1024 * 1024:
+                        flash('Vídeo muito grande. Máximo 100MB permitido.', 'error')
+                        return redirect(url_for('admin_panel'))
+                    file.seek(0)
+                    
+                    try:
+                        filename = secure_filename(file.filename)
+                        unique_filename = f"{uuid.uuid4()}_{filename}"
+                        video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        file.save(video_path)
+                        post_obj.video_path = video_path
+                        print(f"Updated post video: {video_path}")
+                    except Exception as e:
+                        print(f"Error saving new post video: {e}")
+                        flash('Erro ao fazer upload do vídeo.', 'error')
+                        return redirect(url_for('admin_panel'))
+            
+            db.session.commit()
+            flash('Post atualizado com sucesso!', 'success')
+            print(f"Post {post_id} updated successfully")
+            
+        except Exception as e:
+            print(f"Error updating post: {e}")
+            db.session.rollback()
+            flash('Erro ao atualizar post. Tente novamente.', 'error')
+        
+        return redirect(url_for('admin_panel'))
+    
+    # GET request - render edit form
+    properties = Property.query.order_by(Property.created_at.desc()).all()
+    posts = Post.query.order_by(Post.created_at.desc()).all()
+    return render_template('admin_panel.html', properties=properties, posts=posts, edit_post=post_obj)
+
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     from flask import send_from_directory
