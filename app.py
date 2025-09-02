@@ -33,7 +33,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 
 # Upload configuration - Railway optimized
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size optimized for Railway
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size for Railway stability
 
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

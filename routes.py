@@ -302,48 +302,51 @@ def add_post():
         image_path = None
         video_path = None
         
-        # Handle image upload with error handling
+        # Handle image upload with optimized processing
         if 'image' in request.files:
             file = request.files['image']
             if file and file.filename and file.filename != '' and allowed_file(file.filename):
-                # Check file size (max 50MB for images)
-                if len(file.read()) > 50 * 1024 * 1024:
-                    flash('Imagem muito grande. Máximo 50MB permitido.', 'error')
-                    return redirect(url_for('admin_panel'))
-                file.seek(0)  # Reset file pointer
-                
                 try:
+                    # Use content-length for efficient size checking
+                    file_size = request.content_length or 0
+                    if file_size > 20 * 1024 * 1024:  # Reduced to 20MB for stability
+                        flash('Imagem muito grande. Máximo 20MB permitido.', 'error')
+                        return redirect(url_for('admin_panel'))
+                    
                     filename = secure_filename(file.filename)
                     unique_filename = f"{uuid.uuid4()}_{filename}"
                     image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
                     file.save(image_path)
-                    print(f"Image saved successfully: {image_path}")
+                    print(f"Image uploaded successfully: {image_path}")
+                    
                 except Exception as e:
-                    print(f"Error saving image: {e}")
+                    print(f"Error processing image upload: {e}")
                     flash('Erro ao fazer upload da imagem. Tente novamente.', 'error')
                     return redirect(url_for('admin_panel'))
         
-        # Handle video upload with error handling and size limits
+        # Handle video upload with optimized processing for Railway
         if 'video' in request.files:
             file = request.files['video']
             if file and file.filename and file.filename != '' and allowed_file(file.filename):
-                # Check file size (max 100MB for videos on Railway)
-                file_size = len(file.read())
-                if file_size > 100 * 1024 * 1024:
-                    flash('Vídeo muito grande. Máximo 100MB permitido.', 'error')
-                    return redirect(url_for('admin_panel'))
-                file.seek(0)  # Reset file pointer
-                
                 try:
+                    # Use content-length header for size check (more efficient)
+                    file_size = request.content_length or 0
+                    if file_size > 50 * 1024 * 1024:  # Reduced to 50MB for Railway stability
+                        flash('Vídeo muito grande. Máximo 50MB permitido no Railway.', 'error')
+                        return redirect(url_for('admin_panel'))
+                    
                     filename = secure_filename(file.filename)
                     unique_filename = f"{uuid.uuid4()}_{filename}"
                     video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-                    print(f"Attempting to save video: {video_path} ({file_size} bytes)")
+                    print(f"Saving video: {unique_filename} (~{file_size} bytes)")
+                    
+                    # Save directly without reading into memory
                     file.save(video_path)
-                    print(f"Video saved successfully: {video_path}")
+                    print(f"Video uploaded successfully: {video_path}")
+                    
                 except Exception as e:
-                    print(f"Error saving video: {e}")
-                    flash('Erro ao fazer upload do vídeo. Verifique o tamanho e formato.', 'error')
+                    print(f"Error processing video upload: {e}")
+                    flash('Erro ao fazer upload do vídeo. Tente um arquivo menor.', 'error')
                     return redirect(url_for('admin_panel'))
         
         # Create post
