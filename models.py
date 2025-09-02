@@ -8,14 +8,20 @@ class Property(db.Model):
     description = db.Column(db.Text)
     image_path = db.Column(db.String(300))  # Main image for backward compatibility
     video_path = db.Column(db.String(300))
-    video_data = db.Column(db.LargeBinary)  # Store video binary data
-    video_filename = db.Column(db.String(255))  # Original filename
-    video_content_type = db.Column(db.String(50))  # MIME type
     property_type = db.Column(db.String(100))  # apartment, house, commercial
     price = db.Column(db.String(100))
     location = db.Column(db.String(200))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     featured = db.Column(db.Boolean, default=False)
+    
+    # New columns for database storage - will be added after migration
+    def has_video_data(self):
+        """Check if this instance has video data stored in database"""
+        return hasattr(self, 'video_data') and self.video_data is not None
+    
+    def has_video_file(self):
+        """Check if this instance has video file stored locally"""
+        return self.video_path is not None
     
     def __repr__(self):
         return f'<Property {self.title}>'
@@ -24,12 +30,14 @@ class PropertyImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
     image_path = db.Column(db.String(300), nullable=False)  # Keep for backward compatibility
-    image_data = db.Column(db.LargeBinary, nullable=False)  # Store image binary data
-    filename = db.Column(db.String(255), nullable=False)  # Original filename
-    content_type = db.Column(db.String(50), nullable=False)  # MIME type
     is_primary = db.Column(db.Boolean, default=False)
     order_index = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # New columns for database storage - will be added after migration
+    def has_image_data(self):
+        """Check if this instance has image data stored in database"""
+        return hasattr(self, 'image_data') and self.image_data is not None
     
     property = db.relationship('Property', backref=db.backref('images', lazy=True, order_by='PropertyImage.order_index', cascade='all, delete-orphan'))
     
@@ -53,14 +61,17 @@ class Post(db.Model):
     content = db.Column(db.Text)
     image_path = db.Column(db.String(300))
     video_path = db.Column(db.String(300))
-    image_data = db.Column(db.LargeBinary)  # Store image binary data
-    image_filename = db.Column(db.String(255))  # Original filename
-    image_content_type = db.Column(db.String(50))  # MIME type
-    video_data = db.Column(db.LargeBinary)  # Store video binary data
-    video_filename = db.Column(db.String(255))  # Original filename
-    video_content_type = db.Column(db.String(50))  # MIME type
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     featured = db.Column(db.Boolean, default=False)
+    
+    # Helper methods to check for database-stored media
+    def has_image_data(self):
+        """Check if this instance has image data stored in database"""
+        return hasattr(self, 'image_data') and self.image_data is not None
+    
+    def has_video_data(self):
+        """Check if this instance has video data stored in database"""
+        return hasattr(self, 'video_data') and self.video_data is not None
     
     def __repr__(self):
         return f'<Post {self.title}>'

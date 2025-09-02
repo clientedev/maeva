@@ -53,7 +53,7 @@
                             <div class="admin-property-card">
                                 {% if property.images and property.images|length > 0 %}
                                 <div class="property-image-admin">
-                                    <img src="{{ url_for('serve_property_image', image_id=property.images[0].id) }}" 
+                                    <img src="{{ url_for('uploaded_file', filename=property.images[0].image_path.split('/')[-1]) }}" 
                                          alt="{{ property.title }}">
                                 </div>
                                 {% elif property.image_path %}
@@ -215,12 +215,7 @@
                         {% if posts %}
                             {% for post in posts %}
                             <div class="admin-property-card">
-                                {% if post.image_data %}
-                                <div class="property-image-admin">
-                                    <img src="{{ url_for('serve_post_image', post_id=post.id) }}" 
-                                         alt="{{ post.title }}">
-                                </div>
-                                {% elif post.image_path %}
+                                {% if post.image_path %}
                                 <div class="property-image-admin">
                                     <img src="{{ url_for('uploaded_file', filename=post.image_path.split('/')[-1]) }}" 
                                          alt="{{ post.title }}">
@@ -382,7 +377,7 @@
                                     {% if edit_property.images %}
                                         {% for img in edit_property.images %}
                                         <div class="current-image-item d-inline-block me-2 mb-2">
-                                            <img src="{{ url_for('serve_property_image', image_id=img.id) }}" 
+                                            <img src="{{ url_for('uploaded_file', filename=img.image_path.split('/')[-1]) }}" 
                                                  alt="Property image" style="width: 100px; height: 80px; object-fit: cover; border-radius: 4px;">
                                         </div>
                                         {% endfor %}

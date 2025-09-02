@@ -123,34 +123,23 @@ def add_property():
         
         video_path = None
         
-        # Handle video upload with error handling - save to database
+        # Handle video upload - save to filesystem for now (backward compatible)
         if 'video' in request.files:
             file = request.files['video']
             if file and file.filename and file.filename != '' and allowed_file(file.filename):
-                # Read video data
-                video_data = file.read()
-                file_size = len(video_data)
-                
-                # Check file size (max 50MB for videos in database)
+                # Check file size (max 50MB for videos)
+                file_size = len(file.read())
                 if file_size > 50 * 1024 * 1024:
                     flash('Vídeo muito grande. Máximo 50MB permitido.', 'error')
                     return redirect(url_for('admin_panel'))
+                file.seek(0)  # Reset file pointer
                 
                 try:
                     filename = secure_filename(file.filename)
-                    # Determine content type
-                    content_type = 'video/mp4'  # default
-                    if filename.lower().endswith('.avi'):
-                        content_type = 'video/avi'
-                    elif filename.lower().endswith('.mov'):
-                        content_type = 'video/quicktime'
-                    
-                    # Store video data in property record
-                    property_obj.video_data = video_data
-                    property_obj.video_filename = filename
-                    property_obj.video_content_type = content_type
-                    video_path = f"property_video_{property_obj.id}.{filename.split('.')[-1]}"
-                    print(f"Property video saved to database: {filename} ({file_size} bytes)")
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                    file.save(video_path)
+                    print(f"Property video saved to filesystem: {filename} ({file_size} bytes)")
                 except Exception as e:
                     print(f"Error saving property video: {e}")
                     flash('Erro ao fazer upload do vídeo. Verifique o tamanho e formato.', 'error')
@@ -170,43 +159,35 @@ def add_property():
         db.session.add(property_obj)
         db.session.commit()
         
-        # Handle multiple image uploads with error handling - save to database
+        # Handle multiple image uploads - save to filesystem for now (backward compatible)
         uploaded_images = []
         if 'images' in request.files:
             files = request.files.getlist('images')
             for i, file in enumerate(files[:10]):  # Limit to 10 images
                 if file and file.filename and file.filename != '' and allowed_file(file.filename):
-                    # Read file data
-                    image_data = file.read()
-                    file_size = len(image_data)
-                    
                     # Check image file size (max 20MB per image)
+                    file_size = len(file.read())
                     if file_size > 20 * 1024 * 1024:
                         flash(f'Imagem {file.filename} muito grande. Máximo 20MB por imagem.', 'error')
                         return redirect(url_for('admin_panel'))
+                    file.seek(0)  # Reset file pointer
                     
                     try:
                         filename = secure_filename(file.filename)
-                        # Determine content type
-                        content_type = 'image/jpeg'  # default
-                        if filename.lower().endswith('.png'):
-                            content_type = 'image/png'
-                        elif filename.lower().endswith('.gif'):
-                            content_type = 'image/gif'
+                        unique_filename = f"{uuid.uuid4()}_{filename}"
+                        image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        file.save(image_path)
                         
-                        # Create PropertyImage record with binary data
+                        # Create PropertyImage record
                         property_image = PropertyImage(
                             property_id=property_obj.id,
-                            image_path=f"property_image_{property_obj.id}_{i}.{filename.split('.')[-1]}",  # For backward compatibility
-                            image_data=image_data,
-                            filename=filename,
-                            content_type=content_type,
+                            image_path=image_path,
                             is_primary=(i == 0),  # First image is primary
                             order_index=i
                         )
                         db.session.add(property_image)
-                        uploaded_images.append(f"property_image_{property_obj.id}_{i}")
-                        print(f"Property image {i+1} saved to database: {filename} ({file_size} bytes)")
+                        uploaded_images.append(image_path)
+                        print(f"Property image {i+1} saved to filesystem: {filename} ({file_size} bytes)")
                     except Exception as e:
                         print(f"Error saving property image {i+1}: {e}")
                         flash(f'Erro ao fazer upload da imagem {file.filename}', 'error')
@@ -320,66 +301,46 @@ def add_post():
         image_path = None
         video_path = None
         
-        # Handle image upload - save to database
+        # Handle image upload - save to filesystem for now (backward compatible)
         if 'image' in request.files:
             file = request.files['image']
             if file and file.filename and file.filename != '' and allowed_file(file.filename):
                 try:
-                    # Read image data
-                    image_data = file.read()
-                    file_size = len(image_data)
-                    
+                    # Check file size
+                    file_size = len(file.read())
                     if file_size > 20 * 1024 * 1024:  # 20MB limit
                         flash('Imagem muito grande. Máximo 20MB permitido.', 'error')
                         return redirect(url_for('admin_panel'))
+                    file.seek(0)  # Reset file pointer
                     
                     filename = secure_filename(file.filename)
-                    # Determine content type
-                    content_type = 'image/jpeg'  # default
-                    if filename.lower().endswith('.png'):
-                        content_type = 'image/png'
-                    elif filename.lower().endswith('.gif'):
-                        content_type = 'image/gif'
-                    
-                    # Store image data in post record
-                    post_obj.image_data = image_data
-                    post_obj.image_filename = filename
-                    post_obj.image_content_type = content_type
-                    image_path = f"post_image_{title.replace(' ', '_')}.{filename.split('.')[-1]}"
-                    print(f"Post image saved to database: {filename} ({file_size} bytes)")
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                    file.save(image_path)
+                    print(f"Post image saved to filesystem: {filename} ({file_size} bytes)")
                     
                 except Exception as e:
                     print(f"Error processing image upload: {e}")
                     flash('Erro ao fazer upload da imagem. Tente novamente.', 'error')
                     return redirect(url_for('admin_panel'))
         
-        # Handle video upload - save to database
+        # Handle video upload - save to filesystem for now (backward compatible)
         if 'video' in request.files:
             file = request.files['video']
             if file and file.filename and file.filename != '' and allowed_file(file.filename):
                 try:
-                    # Read video data
-                    video_data = file.read()
-                    file_size = len(video_data)
-                    
-                    if file_size > 50 * 1024 * 1024:  # 50MB limit for database storage
+                    # Check file size
+                    file_size = len(file.read())
+                    if file_size > 50 * 1024 * 1024:  # 50MB limit
                         flash('Vídeo muito grande. Máximo 50MB permitido.', 'error')
                         return redirect(url_for('admin_panel'))
+                    file.seek(0)  # Reset file pointer
                     
                     filename = secure_filename(file.filename)
-                    # Determine content type
-                    content_type = 'video/mp4'  # default
-                    if filename.lower().endswith('.avi'):
-                        content_type = 'video/avi'
-                    elif filename.lower().endswith('.mov'):
-                        content_type = 'video/quicktime'
-                    
-                    # Store video data in post record
-                    post_obj.video_data = video_data
-                    post_obj.video_filename = filename
-                    post_obj.video_content_type = content_type
-                    video_path = f"post_video_{title.replace(' ', '_')}.{filename.split('.')[-1]}"
-                    print(f"Post video saved to database: {filename} ({file_size} bytes)")
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                    file.save(video_path)
+                    print(f"Post video saved to filesystem: {filename} ({file_size} bytes)")
                     
                 except Exception as e:
                     print(f"Error processing video upload: {e}")
@@ -555,54 +516,7 @@ def update_post(post_id):
     
     return redirect(url_for('admin_panel'))
 
-# New routes to serve files from database
-@app.route('/file/property_image/<int:image_id>')
-def serve_property_image(image_id):
-    from flask import Response
-    property_image = PropertyImage.query.get_or_404(image_id)
-    return Response(
-        property_image.image_data,
-        mimetype=property_image.content_type,
-        headers={"Content-Disposition": f"inline; filename={property_image.filename}"}
-    )
-
-@app.route('/file/property_video/<int:property_id>')
-def serve_property_video(property_id):
-    from flask import Response
-    property_obj = Property.query.get_or_404(property_id)
-    if not property_obj.video_data:
-        return "Video not found", 404
-    return Response(
-        property_obj.video_data,
-        mimetype=property_obj.video_content_type,
-        headers={"Content-Disposition": f"inline; filename={property_obj.video_filename}"}
-    )
-
-@app.route('/file/post_image/<int:post_id>')
-def serve_post_image(post_id):
-    from flask import Response
-    post_obj = Post.query.get_or_404(post_id)
-    if not post_obj.image_data:
-        return "Image not found", 404
-    return Response(
-        post_obj.image_data,
-        mimetype=post_obj.image_content_type,
-        headers={"Content-Disposition": f"inline; filename={post_obj.image_filename}"}
-    )
-
-@app.route('/file/post_video/<int:post_id>')
-def serve_post_video(post_id):
-    from flask import Response
-    post_obj = Post.query.get_or_404(post_id)
-    if not post_obj.video_data:
-        return "Video not found", 404
-    return Response(
-        post_obj.video_data,
-        mimetype=post_obj.video_content_type,
-        headers={"Content-Disposition": f"inline; filename={post_obj.video_filename}"}
-    )
-
-# Keep old route for backward compatibility with existing files
+# Route for serving uploaded files
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     from flask import send_from_directory
