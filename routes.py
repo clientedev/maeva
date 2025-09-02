@@ -221,18 +221,50 @@ def delete_property(property_id):
         session.pop('admin_token', None)
         return redirect(url_for('admin_login'))
     
-    property_obj = Property.query.get_or_404(property_id)
+    try:
+        property_obj = Property.query.get_or_404(property_id)
+        
+        # Delete all associated PropertyImage records and their files
+        property_images = PropertyImage.query.filter_by(property_id=property_id).all()
+        for img in property_images:
+            # Delete the physical file
+            if img.image_path and os.path.exists(img.image_path):
+                try:
+                    os.remove(img.image_path)
+                    print(f"Deleted image file: {img.image_path}")
+                except Exception as e:
+                    print(f"Error deleting image file {img.image_path}: {e}")
+            # Delete the database record
+            db.session.delete(img)
+        
+        # Delete main property image file (backward compatibility)
+        if property_obj.image_path and os.path.exists(property_obj.image_path):
+            try:
+                os.remove(property_obj.image_path)
+                print(f"Deleted main property image: {property_obj.image_path}")
+            except Exception as e:
+                print(f"Error deleting main property image: {e}")
+        
+        # Delete video file
+        if property_obj.video_path and os.path.exists(property_obj.video_path):
+            try:
+                os.remove(property_obj.video_path)
+                print(f"Deleted property video: {property_obj.video_path}")
+            except Exception as e:
+                print(f"Error deleting property video: {e}")
+        
+        # Delete the property itself
+        db.session.delete(property_obj)
+        db.session.commit()
+        
+        print(f"Property {property_id} deleted successfully")
+        flash('Propriedade removida com sucesso!', 'success')
+        
+    except Exception as e:
+        print(f"Error deleting property {property_id}: {e}")
+        db.session.rollback()
+        flash('Erro ao excluir propriedade. Tente novamente.', 'error')
     
-    # Delete associated files
-    if property_obj.image_path and os.path.exists(property_obj.image_path):
-        os.remove(property_obj.image_path)
-    if property_obj.video_path and os.path.exists(property_obj.video_path):
-        os.remove(property_obj.video_path)
-    
-    db.session.delete(property_obj)
-    db.session.commit()
-    
-    flash('Propriedade removida com sucesso!', 'success')
     return redirect(url_for('admin_panel'))
 
 @app.route('/admin/logout')
@@ -348,18 +380,36 @@ def delete_post(post_id):
         session.pop('admin_token', None)
         return redirect(url_for('admin_login'))
     
-    post_obj = Post.query.get_or_404(post_id)
+    try:
+        post_obj = Post.query.get_or_404(post_id)
+        
+        # Delete associated files with error handling
+        if post_obj.image_path and os.path.exists(post_obj.image_path):
+            try:
+                os.remove(post_obj.image_path)
+                print(f"Deleted post image: {post_obj.image_path}")
+            except Exception as e:
+                print(f"Error deleting post image: {e}")
+        
+        if post_obj.video_path and os.path.exists(post_obj.video_path):
+            try:
+                os.remove(post_obj.video_path)
+                print(f"Deleted post video: {post_obj.video_path}")
+            except Exception as e:
+                print(f"Error deleting post video: {e}")
+        
+        # Delete the post
+        db.session.delete(post_obj)
+        db.session.commit()
+        
+        print(f"Post {post_id} deleted successfully")
+        flash('Post removido com sucesso!', 'success')
+        
+    except Exception as e:
+        print(f"Error deleting post {post_id}: {e}")
+        db.session.rollback()
+        flash('Erro ao excluir post. Tente novamente.', 'error')
     
-    # Delete associated files
-    if post_obj.image_path and os.path.exists(post_obj.image_path):
-        os.remove(post_obj.image_path)
-    if post_obj.video_path and os.path.exists(post_obj.video_path):
-        os.remove(post_obj.video_path)
-    
-    db.session.delete(post_obj)
-    db.session.commit()
-    
-    flash('Post removido com sucesso!', 'success')
     return redirect(url_for('admin_panel'))
 
 @app.route('/uploads/<filename>')

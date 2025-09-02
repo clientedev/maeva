@@ -25,7 +25,7 @@ class PropertyImage(db.Model):
     order_index = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    property = db.relationship('Property', backref=db.backref('images', lazy=True, order_by='PropertyImage.order_index'))
+    property = db.relationship('Property', backref=db.backref('images', lazy=True, order_by='PropertyImage.order_index', cascade='all, delete-orphan'))
     
     def __repr__(self):
         return f'<PropertyImage {self.image_path}>'
