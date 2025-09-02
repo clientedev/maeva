@@ -3,7 +3,7 @@ import uuid
 import json
 from datetime import datetime, timedelta
 from PIL import Image
-from flask import render_template, request, redirect, url_for, session, flash, jsonify
+from flask import render_template, request, redirect, url_for, session, flash, jsonify, Response
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from openai import OpenAI
@@ -118,8 +118,8 @@ def compress_image(file_path, quality=85):
         print(f"Error compressing image {file_path}: {e}")
         return False
 
-def save_uploaded_file(file, upload_folder):
-    """Save uploaded file with optimization and error handling"""
+def save_uploaded_file_to_disk(file, upload_folder):
+    """Save uploaded file to disk (backward compatibility)"""
     try:
         # Validate file
         is_valid, message = is_safe_file(file)
@@ -145,6 +145,79 @@ def save_uploaded_file(file, upload_folder):
     except Exception as e:
         print(f"Error saving file: {e}")
         return None, "Erro ao fazer upload do arquivo"
+
+def get_file_content_type(filename):
+    """Get content type based on file extension"""
+    file_ext = filename.rsplit('.', 1)[1].lower()
+    
+    content_types = {
+        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
+        'gif': 'image/gif', 'webp': 'image/webp',
+        'mp4': 'video/mp4', 'avi': 'video/avi', 'mov': 'video/quicktime',
+        'webm': 'video/webm'
+    }
+    
+    return content_types.get(file_ext, 'application/octet-stream')
+
+def save_file_to_database(file_data, filename, content_type):
+    """Save file data to database, returns database ID or None if failed"""
+    try:
+        # This will be used to store file reference
+        return {
+            'data': file_data,
+            'filename': filename,
+            'content_type': content_type
+        }
+    except Exception as e:
+        print(f"Error preparing file for database: {e}")
+        return None
+
+def process_uploaded_file(file):
+    """Process uploaded file and prepare for database storage"""
+    try:
+        # Validate file
+        is_valid, message = is_safe_file(file)
+        if not is_valid:
+            return None, message
+        
+        # Get file data
+        file.seek(0)  # Make sure we're at the beginning
+        file_data = file.read()
+        
+        # Get filename and content type
+        filename = secure_filename(file.filename)
+        content_type = get_file_content_type(file.filename)
+        
+        # Compress image data if it's an image
+        file_ext = filename.rsplit('.', 1)[1].lower()
+        if file_ext in ALLOWED_IMAGE_EXTENSIONS:
+            try:
+                # Create temporary file for compression
+                import tempfile
+                with tempfile.NamedTemporaryFile(suffix=f'.{file_ext}') as temp_file:
+                    temp_file.write(file_data)
+                    temp_file.flush()
+                    
+                    # Compress the image
+                    if compress_image(temp_file.name):
+                        # Read the compressed data
+                        with open(temp_file.name, 'rb') as compressed_file:
+                            file_data = compressed_file.read()
+                        print(f"Image compressed successfully: {filename}")
+                    else:
+                        print(f"Warning: Could not compress image {filename}, using original")
+            except Exception as e:
+                print(f"Warning: Error compressing image {filename}: {e}")
+        
+        file_info = save_file_to_database(file_data, filename, content_type)
+        if file_info:
+            return file_info, "Upload processado com sucesso"
+        else:
+            return None, "Erro ao processar arquivo"
+            
+    except Exception as e:
+        print(f"Error processing file: {e}")
+        return None, "Erro ao processar arquivo"
 
 @app.route('/')
 def index():
@@ -259,26 +332,33 @@ def add_property():
         
         video_path = None
         
-        # Handle video upload with new optimized system
+        # Handle video upload with database storage
+        video_file_info = None
         if 'video' in request.files:
             file = request.files['video']
             if file and file.filename:
-                video_path, message = save_uploaded_file(file, app.config['UPLOAD_FOLDER'])
-                if video_path is None:
+                video_file_info, message = process_uploaded_file(file)
+                if video_file_info is None:
                     flash(f'Erro no vídeo: {message}', 'error')
                     return redirect(url_for('admin_panel'))
-                print(f"Property video uploaded successfully: {message}")
+                print(f"Property video processed successfully: {message}")
         
-        # Create property first
+        # Create property with database storage
         property_obj = Property(
             title=title,
             description=description,
-            video_path=video_path,
+            video_path=None,  # Keep for backward compatibility
             property_type=property_type,
             price=price,
             location=location,
             featured=featured
         )
+        
+        # Set video data if uploaded
+        if video_file_info:
+            property_obj.video_data = video_file_info['data']
+            property_obj.video_filename = video_file_info['filename']
+            property_obj.video_content_type = video_file_info['content_type']
         
         db.session.add(property_obj)
         db.session.commit()
@@ -289,23 +369,26 @@ def add_property():
             files = request.files.getlist('images')
             for i, file in enumerate(files[:10]):  # Limit to 10 images
                 if file and file.filename:
-                    image_path, message = save_uploaded_file(file, app.config['UPLOAD_FOLDER'])
-                    if image_path is None:
+                    image_file_info, message = process_uploaded_file(file)
+                    if image_file_info is None:
                         flash(f'Erro na imagem {file.filename}: {message}', 'error')
                         return redirect(url_for('admin_panel'))
                     
-                    # Create PropertyImage record
+                    # Create PropertyImage record with database storage
                     property_image = PropertyImage(
                         property_id=property_obj.id,
-                        image_path=image_path,
+                        image_path=f'db_image_{property_obj.id}_{i}',  # Reference for backward compatibility
                         is_primary=(i == 0),  # First image is primary
-                        order_index=i
+                        order_index=i,
+                        image_data=image_file_info['data'],
+                        image_filename=image_file_info['filename'],
+                        image_content_type=image_file_info['content_type']
                     )
                     db.session.add(property_image)
-                    uploaded_images.append(image_path)
-                    print(f"Property image {i+1} uploaded successfully: {message}")
+                    uploaded_images.append(f'property_image_{property_obj.id}_{i}')
+                    print(f"Property image {i+1} processed successfully: {message}")
         
-        # Set first image as main image for backward compatibility
+        # Set reference to first image for backward compatibility
         if uploaded_images:
             property_obj.image_path = uploaded_images[0]
             db.session.commit()
@@ -335,40 +418,42 @@ def delete_property(property_id):
     try:
         property_obj = Property.query.get_or_404(property_id)
         
-        # Delete all associated PropertyImage records and their files
+        # Delete all associated PropertyImage records (data is in database now)
         property_images = PropertyImage.query.filter_by(property_id=property_id).all()
         for img in property_images:
-            # Delete the physical file
-            if img.image_path and os.path.exists(img.image_path):
+            # Try to delete physical file if it still exists (backward compatibility)
+            if img.image_path and os.path.exists(img.image_path) and not img.image_path.startswith('db_image'):
                 try:
                     os.remove(img.image_path)
-                    print(f"Deleted image file: {img.image_path}")
+                    print(f"Deleted legacy image file: {img.image_path}")
                 except Exception as e:
-                    print(f"Error deleting image file {img.image_path}: {e}")
-            # Delete the database record
+                    print(f"Warning: Could not delete legacy image file {img.image_path}: {e}")
+            
+            # Delete the database record (this also removes binary data)
             db.session.delete(img)
+            print(f"Deleted property image record: {img.id}")
         
-        # Delete main property image file (backward compatibility)
+        # Delete main property image file if exists (backward compatibility)
         if property_obj.image_path and os.path.exists(property_obj.image_path):
             try:
                 os.remove(property_obj.image_path)
-                print(f"Deleted main property image: {property_obj.image_path}")
+                print(f"Deleted legacy main property image: {property_obj.image_path}")
             except Exception as e:
-                print(f"Error deleting main property image: {e}")
+                print(f"Warning: Could not delete legacy main image: {e}")
         
-        # Delete video file
+        # Delete video file if exists (backward compatibility)
         if property_obj.video_path and os.path.exists(property_obj.video_path):
             try:
                 os.remove(property_obj.video_path)
-                print(f"Deleted property video: {property_obj.video_path}")
+                print(f"Deleted legacy property video: {property_obj.video_path}")
             except Exception as e:
-                print(f"Error deleting property video: {e}")
+                print(f"Warning: Could not delete legacy video file: {e}")
         
-        # Delete the property itself
+        # Delete the property itself (this also removes binary video data from database)
         db.session.delete(property_obj)
         db.session.commit()
         
-        print(f"Property {property_id} deleted successfully")
+        print(f"Property {property_id} deleted successfully from database")
         flash('Propriedade removida com sucesso!', 'success')
         
     except Exception as e:
@@ -377,6 +462,135 @@ def delete_property(property_id):
         flash('Erro ao excluir propriedade. Tente novamente.', 'error')
     
     return redirect(url_for('admin_panel'))
+
+# Routes to serve files from database
+@app.route('/serve/property_image/<int:property_id>')
+def serve_property_main_image(property_id):
+    """Serve main property image from database"""
+    property_obj = Property.query.get_or_404(property_id)
+    
+    # Try to get first image from database
+    first_image = PropertyImage.query.filter_by(property_id=property_id, is_primary=True).first()
+    if not first_image:
+        first_image = PropertyImage.query.filter_by(property_id=property_id).order_by(PropertyImage.order_index).first()
+    
+    if first_image and first_image.has_image_data():
+        return Response(
+            first_image.image_data,
+            mimetype=first_image.image_content_type,
+            headers={
+                'Content-Disposition': f'inline; filename="{first_image.image_filename}"',
+                'Cache-Control': 'max-age=3600'
+            }
+        )
+    
+    # Fallback to file system if available
+    if property_obj.image_path and os.path.exists(property_obj.image_path):
+        with open(property_obj.image_path, 'rb') as f:
+            file_data = f.read()
+        content_type = get_file_content_type(property_obj.image_path)
+        return Response(file_data, mimetype=content_type)
+    
+    return "Image not found", 404
+
+@app.route('/serve/property_image/<int:property_id>/<int:image_index>')
+def serve_property_image(property_id, image_index):
+    """Serve specific property image from database"""
+    property_image = PropertyImage.query.filter_by(
+        property_id=property_id, 
+        order_index=image_index
+    ).first_or_404()
+    
+    if property_image.has_image_data():
+        return Response(
+            property_image.image_data,
+            mimetype=property_image.image_content_type,
+            headers={
+                'Content-Disposition': f'inline; filename="{property_image.image_filename}"',
+                'Cache-Control': 'max-age=3600'
+            }
+        )
+    
+    # Fallback to file system
+    if property_image.image_path and os.path.exists(property_image.image_path):
+        with open(property_image.image_path, 'rb') as f:
+            file_data = f.read()
+        content_type = get_file_content_type(property_image.image_path)
+        return Response(file_data, mimetype=content_type)
+    
+    return "Image not found", 404
+
+@app.route('/serve/property_video/<int:property_id>')
+def serve_property_video(property_id):
+    """Serve property video from database"""
+    property_obj = Property.query.get_or_404(property_id)
+    
+    if property_obj.has_video_data():
+        return Response(
+            property_obj.video_data,
+            mimetype=property_obj.video_content_type,
+            headers={
+                'Content-Disposition': f'inline; filename="{property_obj.video_filename}"',
+                'Cache-Control': 'max-age=3600'
+            }
+        )
+    
+    # Fallback to file system
+    if property_obj.video_path and os.path.exists(property_obj.video_path):
+        with open(property_obj.video_path, 'rb') as f:
+            file_data = f.read()
+        content_type = get_file_content_type(property_obj.video_path)
+        return Response(file_data, mimetype=content_type)
+    
+    return "Video not found", 404
+
+@app.route('/serve/post_image/<int:post_id>')
+def serve_post_image(post_id):
+    """Serve post image from database"""
+    post_obj = Post.query.get_or_404(post_id)
+    
+    if post_obj.has_image_data():
+        return Response(
+            post_obj.image_data,
+            mimetype=post_obj.image_content_type,
+            headers={
+                'Content-Disposition': f'inline; filename="{post_obj.image_filename}"',
+                'Cache-Control': 'max-age=3600'
+            }
+        )
+    
+    # Fallback to file system
+    if post_obj.image_path and os.path.exists(post_obj.image_path):
+        with open(post_obj.image_path, 'rb') as f:
+            file_data = f.read()
+        content_type = get_file_content_type(post_obj.image_path)
+        return Response(file_data, mimetype=content_type)
+    
+    return "Image not found", 404
+
+@app.route('/serve/post_video/<int:post_id>')
+def serve_post_video(post_id):
+    """Serve post video from database"""
+    post_obj = Post.query.get_or_404(post_id)
+    
+    if post_obj.has_video_data():
+        return Response(
+            post_obj.video_data,
+            mimetype=post_obj.video_content_type,
+            headers={
+                'Content-Disposition': f'inline; filename="{post_obj.video_filename}"',
+                'Cache-Control': 'max-age=3600'
+            }
+        )
+    
+    # Fallback to file system
+    if post_obj.video_path and os.path.exists(post_obj.video_path):
+        with open(post_obj.video_path, 'rb') as f:
+            file_data = f.read()
+        content_type = get_file_content_type(post_obj.video_path)
+        return Response(file_data, mimetype=content_type)
+    
+    return "Video not found", 404
 
 @app.route('/admin/logout')
 def admin_logout():
@@ -413,34 +627,47 @@ def add_post():
         image_path = None
         video_path = None
         
-        # Handle image upload with new optimized system
+        # Handle image upload with database storage
+        image_file_info = None
         if 'image' in request.files:
             file = request.files['image']
             if file and file.filename:
-                image_path, message = save_uploaded_file(file, app.config['UPLOAD_FOLDER'])
-                if image_path is None:
+                image_file_info, message = process_uploaded_file(file)
+                if image_file_info is None:
                     flash(f'Erro na imagem: {message}', 'error')
                     return redirect(url_for('admin_panel'))
-                print(f"Post image uploaded successfully: {message}")
+                print(f"Post image processed successfully: {message}")
         
-        # Handle video upload with new optimized system
+        # Handle video upload with database storage
+        video_file_info = None
         if 'video' in request.files:
             file = request.files['video']
             if file and file.filename:
-                video_path, message = save_uploaded_file(file, app.config['UPLOAD_FOLDER'])
-                if video_path is None:
+                video_file_info, message = process_uploaded_file(file)
+                if video_file_info is None:
                     flash(f'Erro no vídeo: {message}', 'error')
                     return redirect(url_for('admin_panel'))
-                print(f"Post video uploaded successfully: {message}")
+                print(f"Post video processed successfully: {message}")
         
-        # Create post
+        # Create post with database storage
         post_obj = Post(
             title=title,
             content=content,
-            image_path=image_path,
-            video_path=video_path,
+            image_path=None,  # Keep for backward compatibility
+            video_path=None,  # Keep for backward compatibility
             featured=featured
         )
+        
+        # Set file data if uploaded
+        if image_file_info:
+            post_obj.image_data = image_file_info['data']
+            post_obj.image_filename = image_file_info['filename']
+            post_obj.image_content_type = image_file_info['content_type']
+        
+        if video_file_info:
+            post_obj.video_data = video_file_info['data']
+            post_obj.video_filename = video_file_info['filename']
+            post_obj.video_content_type = video_file_info['content_type']
         
         db.session.add(post_obj)
         db.session.commit()
@@ -470,26 +697,26 @@ def delete_post(post_id):
     try:
         post_obj = Post.query.get_or_404(post_id)
         
-        # Delete associated files with error handling
+        # Delete legacy files if they exist (backward compatibility)
         if post_obj.image_path and os.path.exists(post_obj.image_path):
             try:
                 os.remove(post_obj.image_path)
-                print(f"Deleted post image: {post_obj.image_path}")
+                print(f"Deleted legacy post image: {post_obj.image_path}")
             except Exception as e:
-                print(f"Error deleting post image: {e}")
+                print(f"Warning: Could not delete legacy post image: {e}")
         
         if post_obj.video_path and os.path.exists(post_obj.video_path):
             try:
                 os.remove(post_obj.video_path)
-                print(f"Deleted post video: {post_obj.video_path}")
+                print(f"Deleted legacy post video: {post_obj.video_path}")
             except Exception as e:
-                print(f"Error deleting post video: {e}")
+                print(f"Warning: Could not delete legacy post video: {e}")
         
-        # Delete the post
+        # Delete the post (this also removes binary data from database)
         db.session.delete(post_obj)
         db.session.commit()
         
-        print(f"Post {post_id} deleted successfully")
+        print(f"Post {post_id} deleted successfully from database")
         flash('Post removido com sucesso!', 'success')
         
     except Exception as e:
