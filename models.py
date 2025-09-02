@@ -1,3 +1,4 @@
+import os
 from app import db
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, LargeBinary
@@ -14,10 +15,9 @@ class Property(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     featured = db.Column(db.Boolean, default=False)
     
-    # New columns for database storage - will be added after migration
     def has_video_data(self):
-        """Check if this instance has video data stored in database"""
-        return hasattr(self, 'video_data') and self.video_data is not None
+        """Check if this instance has video file stored locally"""
+        return self.video_path is not None and os.path.exists(self.video_path) if self.video_path else False
     
     def has_video_file(self):
         """Check if this instance has video file stored locally"""
@@ -34,10 +34,9 @@ class PropertyImage(db.Model):
     order_index = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # New columns for database storage - will be added after migration
     def has_image_data(self):
-        """Check if this instance has image data stored in database"""
-        return hasattr(self, 'image_data') and self.image_data is not None
+        """Check if this instance has image file stored locally"""
+        return self.image_path is not None and os.path.exists(self.image_path) if self.image_path else False
     
     property = db.relationship('Property', backref=db.backref('images', lazy=True, order_by='PropertyImage.order_index', cascade='all, delete-orphan'))
     
@@ -64,14 +63,13 @@ class Post(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     featured = db.Column(db.Boolean, default=False)
     
-    # Helper methods to check for database-stored media
     def has_image_data(self):
-        """Check if this instance has image data stored in database"""
-        return hasattr(self, 'image_data') and self.image_data is not None
+        """Check if this instance has image file stored locally"""
+        return self.image_path is not None and os.path.exists(self.image_path) if self.image_path else False
     
     def has_video_data(self):
-        """Check if this instance has video data stored in database"""
-        return hasattr(self, 'video_data') and self.video_data is not None
+        """Check if this instance has video file stored locally"""
+        return self.video_path is not None and os.path.exists(self.video_path) if self.video_path else False
     
     def __repr__(self):
         return f'<Post {self.title}>'

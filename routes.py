@@ -2,6 +2,7 @@ import os
 import uuid
 import json
 from datetime import datetime, timedelta
+from PIL import Image
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,7 +10,31 @@ from openai import OpenAI
 from app import app, db
 from models import Property, Post, AdminSession, PropertyImage, ChatbotConversation
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'avi', 'mov'}
+# Try to import magic with fallback
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
+    print("Warning: python-magic not available. File type validation will be limited.")
+
+# File configuration - optimized for better performance
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov', 'webm'}
+ALLOWED_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS | ALLOWED_VIDEO_EXTENSIONS
+
+# MIME type validation for security
+ALLOWED_IMAGE_MIMES = {
+    'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'
+}
+ALLOWED_VIDEO_MIMES = {
+    'video/mp4', 'video/avi', 'video/quicktime', 'video/webm'
+}
+
+# Optimized file size limits (reduced for better performance)
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB for images
+MAX_VIDEO_SIZE = 30 * 1024 * 1024  # 30MB for videos
+
 ADMIN_PASSWORD = "4731v8"
 
 # Initialize OpenAI
@@ -17,7 +42,109 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 def allowed_file(filename):
+    """Check if file extension is allowed"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def is_safe_file(file):
+    """Enhanced file validation with optional MIME type checking"""
+    try:
+        # Check file extension first
+        if not file or not file.filename:
+            return False, "Nenhum arquivo selecionado"
+        
+        if not allowed_file(file.filename):
+            return False, "Tipo de arquivo não permitido"
+        
+        # Get file size efficiently
+        file.seek(0, 2)
+        file_size = file.tell()
+        file.seek(0)
+        
+        file_ext = file.filename.rsplit('.', 1)[1].lower()
+        
+        # Validate MIME type if magic is available
+        if MAGIC_AVAILABLE:
+            try:
+                # Read first chunk to detect MIME type
+                chunk = file.read(1024)
+                file.seek(0)
+                
+                mime_type = magic.from_buffer(chunk, mime=True)
+                
+                # Validate MIME type matches extension
+                if file_ext in ALLOWED_IMAGE_EXTENSIONS:
+                    if mime_type not in ALLOWED_IMAGE_MIMES:
+                        return False, f"Arquivo de imagem inválido (detectado: {mime_type})"
+                elif file_ext in ALLOWED_VIDEO_EXTENSIONS:
+                    if mime_type not in ALLOWED_VIDEO_MIMES:
+                        return False, f"Arquivo de vídeo inválido (detectado: {mime_type})"
+            except Exception as e:
+                print(f"Warning: MIME type validation failed: {e}")
+        
+        # Check file sizes
+        if file_ext in ALLOWED_IMAGE_EXTENSIONS:
+            if file_size > MAX_IMAGE_SIZE:
+                return False, f"Imagem muito grande. Máximo {MAX_IMAGE_SIZE // (1024*1024)}MB permitido"
+        elif file_ext in ALLOWED_VIDEO_EXTENSIONS:
+            if file_size > MAX_VIDEO_SIZE:
+                return False, f"Vídeo muito grande. Máximo {MAX_VIDEO_SIZE // (1024*1024)}MB permitido"
+        
+        return True, "Arquivo válido"
+    except Exception as e:
+        print(f"Error validating file: {e}")
+        return False, "Erro ao validar arquivo"
+
+def compress_image(file_path, quality=85):
+    """Compress image to reduce file size while maintaining quality"""
+    try:
+        with Image.open(file_path) as img:
+            # Convert RGBA to RGB if necessary (for JPEG)
+            if img.mode in ('RGBA', 'LA', 'P'):
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                img = background
+            
+            # Resize if image is too large (maintain aspect ratio)
+            max_size = (1920, 1080)
+            if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
+                img.thumbnail(max_size, Image.Resampling.LANCZOS)
+            
+            # Save with compression
+            img.save(file_path, 'JPEG', quality=quality, optimize=True)
+            return True
+    except Exception as e:
+        print(f"Error compressing image {file_path}: {e}")
+        return False
+
+def save_uploaded_file(file, upload_folder):
+    """Save uploaded file with optimization and error handling"""
+    try:
+        # Validate file
+        is_valid, message = is_safe_file(file)
+        if not is_valid:
+            return None, message
+        
+        # Generate unique filename
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4()}_{filename}"
+        file_path = os.path.join(upload_folder, unique_filename)
+        
+        # Save file
+        file.save(file_path)
+        
+        # Compress image if it's an image file
+        file_ext = filename.rsplit('.', 1)[1].lower()
+        if file_ext in ALLOWED_IMAGE_EXTENSIONS:
+            if not compress_image(file_path):
+                # If compression fails, keep original but log warning
+                print(f"Warning: Could not compress image {filename}")
+        
+        return file_path, "Upload realizado com sucesso"
+    except Exception as e:
+        print(f"Error saving file: {e}")
+        return None, "Erro ao fazer upload do arquivo"
 
 @app.route('/')
 def index():
@@ -36,7 +163,11 @@ def services():
 
 @app.route('/galeria')
 def gallery():
-    properties = Property.query.order_by(Property.created_at.desc()).all()
+    # Add pagination for better performance
+    page = request.args.get('page', 1, type=int)
+    per_page = 12  # Show 12 properties per page
+    properties = Property.query.order_by(Property.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False)
     return render_template('gallery.html', properties=properties)
 
 @app.route('/contato')
@@ -45,7 +176,11 @@ def contact():
 
 @app.route('/posts')
 def posts():
-    all_posts = Post.query.order_by(Post.created_at.desc()).all()
+    # Add pagination for better performance
+    page = request.args.get('page', 1, type=int)
+    per_page = 12  # Show 12 posts per page
+    all_posts = Post.query.order_by(Post.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False)
     return render_template('posts.html', posts=all_posts)
 
 @app.route('/post/<int:post_id>')
@@ -93,8 +228,9 @@ def admin_panel():
         flash('Sessão expirada. Faça login novamente.', 'error')
         return redirect(url_for('admin_login'))
     
-    properties = Property.query.order_by(Property.created_at.desc()).all()
-    posts = Post.query.order_by(Post.created_at.desc()).all()
+    # Optimized queries - limit results for better performance
+    properties = Property.query.order_by(Property.created_at.desc()).limit(20).all()
+    posts = Post.query.order_by(Post.created_at.desc()).limit(20).all()
     return render_template('admin_panel.html', properties=properties, posts=posts)
 
 @app.route('/admin/add-property', methods=['POST'])
@@ -123,29 +259,15 @@ def add_property():
         
         video_path = None
         
-        # Handle video upload - optimized for performance
+        # Handle video upload with new optimized system
         if 'video' in request.files:
             file = request.files['video']
-            if file and file.filename and file.filename != '' and allowed_file(file.filename):
-                # Efficient file size check without loading into memory
-                file.seek(0, 2)  # Seek to end
-                file_size = file.tell()  # Get size
-                file.seek(0)  # Reset to beginning
-                
-                if file_size > 50 * 1024 * 1024:
-                    flash('Vídeo muito grande. Máximo 50MB permitido.', 'error')
+            if file and file.filename:
+                video_path, message = save_uploaded_file(file, app.config['UPLOAD_FOLDER'])
+                if video_path is None:
+                    flash(f'Erro no vídeo: {message}', 'error')
                     return redirect(url_for('admin_panel'))
-                
-                try:
-                    filename = secure_filename(file.filename)
-                    unique_filename = f"{uuid.uuid4()}_{filename}"
-                    video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-                    file.save(video_path)
-                    print(f"Property video saved: {filename} ({file_size} bytes)")
-                except Exception as e:
-                    print(f"Error saving property video: {e}")
-                    flash('Erro ao fazer upload do vídeo. Verifique o tamanho e formato.', 'error')
-                    return redirect(url_for('admin_panel'))
+                print(f"Property video uploaded successfully: {message}")
         
         # Create property first
         property_obj = Property(
@@ -161,41 +283,27 @@ def add_property():
         db.session.add(property_obj)
         db.session.commit()
         
-        # Handle multiple image uploads - optimized for performance
+        # Handle multiple image uploads with new optimized system
         uploaded_images = []
         if 'images' in request.files:
             files = request.files.getlist('images')
             for i, file in enumerate(files[:10]):  # Limit to 10 images
-                if file and file.filename and file.filename != '' and allowed_file(file.filename):
-                    # Efficient file size check without loading into memory
-                    file.seek(0, 2)  # Seek to end
-                    file_size = file.tell()  # Get size
-                    file.seek(0)  # Reset to beginning
-                    
-                    if file_size > 20 * 1024 * 1024:
-                        flash(f'Imagem {file.filename} muito grande. Máximo 20MB por imagem.', 'error')
+                if file and file.filename:
+                    image_path, message = save_uploaded_file(file, app.config['UPLOAD_FOLDER'])
+                    if image_path is None:
+                        flash(f'Erro na imagem {file.filename}: {message}', 'error')
                         return redirect(url_for('admin_panel'))
                     
-                    try:
-                        filename = secure_filename(file.filename)
-                        unique_filename = f"{uuid.uuid4()}_{filename}"
-                        image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-                        file.save(image_path)
-                        
-                        # Create PropertyImage record
-                        property_image = PropertyImage(
-                            property_id=property_obj.id,
-                            image_path=image_path,
-                            is_primary=(i == 0),  # First image is primary
-                            order_index=i
-                        )
-                        db.session.add(property_image)
-                        uploaded_images.append(image_path)
-                        print(f"Property image {i+1} saved: {filename} ({file_size} bytes)")
-                    except Exception as e:
-                        print(f"Error saving property image {i+1}: {e}")
-                        flash(f'Erro ao fazer upload da imagem {file.filename}', 'error')
-                        return redirect(url_for('admin_panel'))
+                    # Create PropertyImage record
+                    property_image = PropertyImage(
+                        property_id=property_obj.id,
+                        image_path=image_path,
+                        is_primary=(i == 0),  # First image is primary
+                        order_index=i
+                    )
+                    db.session.add(property_image)
+                    uploaded_images.append(image_path)
+                    print(f"Property image {i+1} uploaded successfully: {message}")
         
         # Set first image as main image for backward compatibility
         if uploaded_images:
@@ -305,55 +413,25 @@ def add_post():
         image_path = None
         video_path = None
         
-        # Handle image upload - optimized for performance
+        # Handle image upload with new optimized system
         if 'image' in request.files:
             file = request.files['image']
-            if file and file.filename and file.filename != '' and allowed_file(file.filename):
-                try:
-                    # Efficient file size check without loading into memory
-                    file.seek(0, 2)  # Seek to end
-                    file_size = file.tell()  # Get size
-                    file.seek(0)  # Reset to beginning
-                    
-                    if file_size > 20 * 1024 * 1024:  # 20MB limit
-                        flash('Imagem muito grande. Máximo 20MB permitido.', 'error')
-                        return redirect(url_for('admin_panel'))
-                    
-                    filename = secure_filename(file.filename)
-                    unique_filename = f"{uuid.uuid4()}_{filename}"
-                    image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-                    file.save(image_path)
-                    print(f"Post image saved: {filename} ({file_size} bytes)")
-                    
-                except Exception as e:
-                    print(f"Error processing image upload: {e}")
-                    flash('Erro ao fazer upload da imagem. Tente novamente.', 'error')
+            if file and file.filename:
+                image_path, message = save_uploaded_file(file, app.config['UPLOAD_FOLDER'])
+                if image_path is None:
+                    flash(f'Erro na imagem: {message}', 'error')
                     return redirect(url_for('admin_panel'))
+                print(f"Post image uploaded successfully: {message}")
         
-        # Handle video upload - optimized for performance
+        # Handle video upload with new optimized system
         if 'video' in request.files:
             file = request.files['video']
-            if file and file.filename and file.filename != '' and allowed_file(file.filename):
-                try:
-                    # Efficient file size check without loading into memory
-                    file.seek(0, 2)  # Seek to end
-                    file_size = file.tell()  # Get size
-                    file.seek(0)  # Reset to beginning
-                    
-                    if file_size > 50 * 1024 * 1024:  # 50MB limit
-                        flash('Vídeo muito grande. Máximo 50MB permitido.', 'error')
-                        return redirect(url_for('admin_panel'))
-                    
-                    filename = secure_filename(file.filename)
-                    unique_filename = f"{uuid.uuid4()}_{filename}"
-                    video_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-                    file.save(video_path)
-                    print(f"Post video saved: {filename} ({file_size} bytes)")
-                    
-                except Exception as e:
-                    print(f"Error processing video upload: {e}")
-                    flash('Erro ao fazer upload do vídeo. Tente um arquivo menor.', 'error')
+            if file and file.filename:
+                video_path, message = save_uploaded_file(file, app.config['UPLOAD_FOLDER'])
+                if video_path is None:
+                    flash(f'Erro no vídeo: {message}', 'error')
                     return redirect(url_for('admin_panel'))
+                print(f"Post video uploaded successfully: {message}")
         
         # Create post
         post_obj = Post(
@@ -435,9 +513,9 @@ def edit_property(property_id):
     
     property_obj = Property.query.get_or_404(property_id)
     
-    # GET request - render edit form
-    properties = Property.query.order_by(Property.created_at.desc()).all()
-    posts = Post.query.order_by(Post.created_at.desc()).all()
+    # GET request - render edit form with optimized queries
+    properties = Property.query.order_by(Property.created_at.desc()).limit(20).all()
+    posts = Post.query.order_by(Post.created_at.desc()).limit(20).all()
     return render_template('admin_panel.html', properties=properties, posts=posts, edit_property=property_obj)
 
 @app.route('/admin/update-property/<int:property_id>', methods=['POST'])
@@ -488,9 +566,9 @@ def edit_post(post_id):
     
     post_obj = Post.query.get_or_404(post_id)
     
-    # GET request - render edit form
-    properties = Property.query.order_by(Property.created_at.desc()).all()
-    posts = Post.query.order_by(Post.created_at.desc()).all()
+    # GET request - render edit form with optimized queries
+    properties = Property.query.order_by(Property.created_at.desc()).limit(20).all()
+    posts = Post.query.order_by(Post.created_at.desc()).limit(20).all()
     return render_template('admin_panel.html', properties=properties, posts=posts, edit_post=post_obj)
 
 @app.route('/admin/update-post/<int:post_id>', methods=['POST'])
