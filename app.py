@@ -18,18 +18,31 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-4731v8")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# configure the database
+# configure the database with UTF-8 support
 database_url = os.environ.get("DATABASE_URL", "sqlite:///maeva.db")
-if database_url.startswith("sqlite:"):
-    # Add UTF-8 encoding for SQLite
-    database_url += "?charset=utf8"
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-    "connect_args": {"check_same_thread": False} if database_url.startswith("sqlite:") else {},
-}
+
+# Configure database connection with proper UTF-8 encoding
+if database_url.startswith("sqlite:"):
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+        "connect_args": {
+            "check_same_thread": False,
+            "isolation_level": None
+        },
+        "echo": False
+    }
+else:
+    # PostgreSQL or other databases
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+        "connect_args": {
+            "options": "-c client_encoding=utf8"
+        }
+    }
 
 # Upload configuration - Railway optimized
 app.config['UPLOAD_FOLDER'] = 'uploads'
