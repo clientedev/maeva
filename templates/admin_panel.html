@@ -306,6 +306,7 @@
                             </div>
                         </form>
                     </div>
+                </div>
                 
                 <!-- Edit Property Form -->
                 {% if edit_property %}
@@ -503,8 +504,6 @@
                     </div>
                 </div>
                 {% endif %}
-                
-                </div>
             </div>
         </div>
     </div>
@@ -546,21 +545,48 @@ document.querySelectorAll('.sidebar-nav .nav-link[data-section]').forEach(link =
     });
 });
 
-// File input preview functionality
-document.getElementById('image').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        // You could add image preview functionality here
-        console.log('Image selected:', file.name);
-    }
+// Show appropriate section on page load
+window.addEventListener('DOMContentLoaded', function() {
+    {% if edit_property %}
+        // Hide all sections and show edit property
+        document.querySelectorAll('.admin-section-content').forEach(section => {
+            section.style.display = 'none';
+        });
+        const editPropertySection = document.getElementById('edit-property-section');
+        if (editPropertySection) {
+            editPropertySection.style.display = 'block';
+        }
+    {% elif edit_post %}
+        // Hide all sections and show edit post
+        document.querySelectorAll('.admin-section-content').forEach(section => {
+            section.style.display = 'none';
+        });
+        const editPostSection = document.getElementById('edit-post-section');
+        if (editPostSection) {
+            editPostSection.style.display = 'block';
+        }
+    {% endif %}
 });
 
-document.getElementById('video').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        // You could add video preview functionality here
-        console.log('Video selected:', file.name);
-    }
-});
+// File input preview functionality (safe checks)
+const imageInput = document.getElementById('image');
+if (imageInput) {
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            console.log('Image selected:', file.name);
+        }
+    });
+}
+
+const videoInput = document.getElementById('video');
+if (videoInput) {
+    videoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            console.log('Video selected:', file.name);
+        }
+    });
+}
 </script>
 {% endblock %}
