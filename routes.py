@@ -15,6 +15,7 @@ try:
     import magic
     MAGIC_AVAILABLE = True
 except ImportError:
+    magic = None
     MAGIC_AVAILABLE = False
     print("Warning: python-magic not available. File type validation will be limited.")
 
@@ -69,7 +70,7 @@ def is_safe_file(file):
                 chunk = file.read(1024)
                 file.seek(0)
                 
-                mime_type = magic.from_buffer(chunk, mime=True)
+                mime_type = magic.from_buffer(chunk, mime=True) if magic else None
                 
                 # Validate MIME type matches extension
                 if file_ext in ALLOWED_IMAGE_EXTENSIONS:
@@ -272,10 +273,9 @@ def admin_login():
             session_token = str(uuid.uuid4())
             expires_at = datetime.utcnow() + timedelta(hours=2)
             
-            admin_session = AdminSession(
-                session_token=session_token,
-                expires_at=expires_at
-            )
+            admin_session = AdminSession()
+            admin_session.session_token = session_token
+            admin_session.expires_at = expires_at
             db.session.add(admin_session)
             db.session.commit()
             
@@ -344,15 +344,14 @@ def add_property():
                 print(f"Property video processed successfully: {message}")
         
         # Create property with database storage
-        property_obj = Property(
-            title=title,
-            description=description,
-            video_path=None,  # Keep for backward compatibility
-            property_type=property_type,
-            price=price,
-            location=location,
-            featured=featured
-        )
+        property_obj = Property()
+        property_obj.title = title
+        property_obj.description = description
+        property_obj.video_path = None  # Keep for backward compatibility
+        property_obj.property_type = property_type
+        property_obj.price = price
+        property_obj.location = location
+        property_obj.featured = featured
         
         # Set video data if uploaded
         if video_file_info:
@@ -375,15 +374,14 @@ def add_property():
                         return redirect(url_for('admin_panel'))
                     
                     # Create PropertyImage record with database storage
-                    property_image = PropertyImage(
-                        property_id=property_obj.id,
-                        image_path=f'db_image_{property_obj.id}_{i}',  # Reference for backward compatibility
-                        is_primary=(i == 0),  # First image is primary
-                        order_index=i,
-                        image_data=image_file_info['data'],
-                        image_filename=image_file_info['filename'],
-                        image_content_type=image_file_info['content_type']
-                    )
+                    property_image = PropertyImage()
+                    property_image.property_id = property_obj.id
+                    property_image.image_path = f'db_image_{property_obj.id}_{i}'  # Reference for backward compatibility
+                    property_image.is_primary = (i == 0)  # First image is primary
+                    property_image.order_index = i
+                    property_image.image_data = image_file_info['data']
+                    property_image.image_filename = image_file_info['filename']
+                    property_image.image_content_type = image_file_info['content_type']
                     db.session.add(property_image)
                     uploaded_images.append(f'property_image_{property_obj.id}_{i}')
                     print(f"Property image {i+1} processed successfully: {message}")
@@ -650,13 +648,12 @@ def add_post():
                 print(f"Post video processed successfully: {message}")
         
         # Create post with database storage
-        post_obj = Post(
-            title=title,
-            content=content,
-            image_path=None,  # Keep for backward compatibility
-            video_path=None,  # Keep for backward compatibility
-            featured=featured
-        )
+        post_obj = Post()
+        post_obj.title = title
+        post_obj.content = content
+        post_obj.image_path = None  # Keep for backward compatibility
+        post_obj.video_path = None  # Keep for backward compatibility
+        post_obj.featured = featured
         
         # Set file data if uploaded
         if image_file_info:
@@ -881,12 +878,11 @@ def chatbot_message():
         bot_response = response.choices[0].message.content
         
         # Save conversation to database
-        conversation = ChatbotConversation(
-            name=user_name,
-            phone=user_phone,
-            message=message,
-            bot_response=bot_response
-        )
+        conversation = ChatbotConversation()
+        conversation.name = user_name
+        conversation.phone = user_phone
+        conversation.message = message
+        conversation.bot_response = bot_response
         
         db.session.add(conversation)
         db.session.commit()

@@ -5,8 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging based on environment
+log_level = logging.INFO if os.environ.get('FLASK_ENV') == 'production' else logging.DEBUG
+logging.basicConfig(level=log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 class Base(DeclarativeBase):
     pass
@@ -35,12 +36,17 @@ if database_url.startswith("sqlite:"):
         "echo": False
     }
 else:
-    # PostgreSQL or other databases
+    # PostgreSQL or other databases - Railway optimized settings
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "pool_recycle": 300,
         "pool_pre_ping": True,
+        "pool_timeout": 20,
+        "pool_size": 5,
+        "max_overflow": 0,
         "connect_args": {
-            "options": "-c client_encoding=utf8"
+            "options": "-c client_encoding=utf8",
+            "connect_timeout": 10,
+            "application_name": "maeva_real_estate"
         }
     }
 
