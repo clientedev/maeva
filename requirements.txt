@@ -23,3 +23,17 @@ psycopg2-binary
 python-magic
 sqlalchemy
 werkzeug
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+email-validator
+flask
+flask-sqlalchemy
+gunicorn
+pillow
+psycopg2-binary
+python-magic
+sqlalchemy
+werkzeug
