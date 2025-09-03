@@ -241,17 +241,6 @@ def index():
             print(f"Template error: {template_error}")
             return '<h1>Maeva Investimentos Imobiliários</h1><p>Site carregado com sucesso!</p>', 200
 
-@app.route('/health')
-def health_check():
-    """Health check endpoint for Railway"""
-    try:
-        # Test database connection
-        from sqlalchemy import text
-        db.session.execute(text('SELECT 1'))
-        return {'status': 'healthy', 'database': 'connected'}, 200
-    except Exception as e:
-        print(f"Health check failed: {e}")
-        return {'status': 'unhealthy', 'error': str(e)}, 503
 
 @app.route('/sobre')
 def about():
