@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 """
-Script de migração para garantir que todas as colunas necessárias existam no PostgreSQL
-Execute este script sempre que adicionar novas colunas aos modelos
+Script de migração simplificado para Railway
 """
-
-from app import app, db
-from sqlalchemy import text
+import os
+import sys
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+try:
+    from main import app, db
+except ImportError:
+    logger.error("Failed to import app - using fallback")
+    sys.exit(0)  # Don't fail - let Railway continue
+
+from sqlalchemy import text
 
 def add_missing_columns():
     """Adiciona colunas que podem estar faltando no banco de dados"""

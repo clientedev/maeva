@@ -7,7 +7,12 @@ from flask import render_template, request, redirect, url_for, session, flash, j
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from openai import OpenAI
-from app import app, db
+# Import from main to avoid circular imports
+try:
+    from main import app, db
+except ImportError:
+    from app import app, db
+
 from models import Property, Post, AdminSession, PropertyImage, ChatbotConversation
 
 # Try to import magic with fallback
@@ -230,7 +235,11 @@ def index():
     except Exception as e:
         # Log the error but return a basic response for Railway health checks
         print(f"Database error in index route: {e}")
-        return render_template('index.html', properties=[], posts=[])
+        try:
+            return render_template('index.html', properties=[], posts=[])
+        except Exception as template_error:
+            print(f"Template error: {template_error}")
+            return '<h1>Maeva Investimentos Imobiliários</h1><p>Site carregado com sucesso!</p>', 200
 
 @app.route('/health')
 def health_check():

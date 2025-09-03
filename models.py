@@ -1,7 +1,17 @@
 import os
-from app import db
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, LargeBinary
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+
+# Get db from main module to avoid circular imports
+try:
+    from main import db
+except ImportError:
+    # Fallback for development/testing
+    class Base(DeclarativeBase):
+        pass
+    db = SQLAlchemy(model_class=Base)
 
 class Property(db.Model):
     id = db.Column(db.Integer, primary_key=True)
