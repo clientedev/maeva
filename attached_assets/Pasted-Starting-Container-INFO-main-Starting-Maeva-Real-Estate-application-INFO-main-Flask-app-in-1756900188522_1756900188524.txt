@@ -1,0 +1,45 @@
+Starting Container
+INFO:main:🚀 Starting Maeva Real Estate application...
+INFO:main:✅ Flask app initialized successfully
+INFO:main:✅ Models imported successfully
+INFO:main:✅ Database tables created successfully
+Warning: python-magic not available. File type validation will be limited.
+
+message:
+"Warning: python-magic not available. File type validation will be limited."
+
+attributes:
+{⋯}
+
+tags:
+{⋯}
+
+timestamp:
+"2025-09-03T11:47:53.043352129Z"
+INFO:main:✅ Routes imported successfully
+INFO:main:🎉 Application startup complete
+INFO:__main__:🔍 Verificando schema do banco de dados...
+INFO:__main__:✅ Conexão com banco de dados estabelecida
+INFO:__main__:✅ Tabela property possui todas as colunas necessárias
+INFO:__main__:✅ Tabela property_image possui todas as colunas necessárias
+INFO:__main__:✅ Tabela post possui todas as colunas necessárias
+INFO:__main__:✅ Schema do banco está completo!
+INFO:__main__:✅ Banco de dados já está atualizado!
+[2025-09-03 11:47:53 +0000] [1] [INFO] Starting gunicorn 23.0.0
+[2025-09-03 11:47:53 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+[2025-09-03 11:47:53 +0000] [1] [INFO] Using worker: sync
+[2025-09-03 11:47:53 +0000] [22] [INFO] Booting worker with pid: 22
+2025-09-03 11:47:53,769 - main - INFO - 🚀 Starting Maeva Real Estate application...
+2025-09-03 11:47:54,248 - main - INFO - ✅ Flask app initialized successfully
+2025-09-03 11:47:54,269 - main - INFO - ✅ Models imported successfully
+2025-09-03 11:47:54,311 - main - INFO - ✅ Database tables created successfully
+Warning: python-magic not available. File type validation will be limited.
+2025-09-03 11:47:54,988 - main - INFO - ✅ Routes imported successfully
+2025-09-03 11:47:54,988 - main - INFO - 🎉 Application startup complete
+100.64.0.2 - - [03/Sep/2025:11:47:54 +0000] "GET /health HTTP/1.1" 200 44 "-" "RailwayHealthCheck/1.0"
+Stopping Container
+2025-09-03 11:47:57.480 UTC [7387] LOG:  SSL error: decryption failed or bad record mac
+2025-09-03 11:47:57.480 UTC [7387] LOG:  could not receive data from client: Connection reset by peer
+[2025-09-03 11:47:56 +0000] [1] [INFO] Handling signal: term
+[2025-09-03 11:47:56 +0000] [39] [INFO] Worker exiting (pid: 39)
+[2025-09-03 11:47:57 +0000] [1] [INFO] Shutting down: Master
