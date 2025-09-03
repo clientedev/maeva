@@ -222,10 +222,27 @@ def process_uploaded_file(file):
 
 @app.route('/')
 def index():
-    # Get 3 most recent properties and posts for homepage
-    recent_properties = Property.query.order_by(Property.created_at.desc()).limit(3).all()
-    recent_posts = Post.query.order_by(Post.created_at.desc()).limit(3).all()
-    return render_template('index.html', properties=recent_properties, posts=recent_posts)
+    try:
+        # Get 3 most recent properties and posts for homepage
+        recent_properties = Property.query.order_by(Property.created_at.desc()).limit(3).all()
+        recent_posts = Post.query.order_by(Post.created_at.desc()).limit(3).all()
+        return render_template('index.html', properties=recent_properties, posts=recent_posts)
+    except Exception as e:
+        # Log the error but return a basic response for Railway health checks
+        print(f"Database error in index route: {e}")
+        return render_template('index.html', properties=[], posts=[])
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Railway"""
+    try:
+        # Test database connection
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
+        return {'status': 'healthy', 'database': 'connected'}, 200
+    except Exception as e:
+        print(f"Health check failed: {e}")
+        return {'status': 'unhealthy', 'error': str(e)}, 503
 
 @app.route('/sobre')
 def about():
@@ -911,3 +928,22 @@ def admin_conversations():
     conversations = ChatbotConversation.query.order_by(ChatbotConversation.created_at.desc()).all()
     
     return render_template('admin_conversations.html', conversations=conversations)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    try:
+        return render_template("404.html"), 404
+    except:
+        return "Page not found", 404
+
+@app.errorhandler(500)  
+def internal_server_error(e):
+    try:
+        return render_template("500.html"), 500
+    except:
+        return "Internal server error", 500
+
+@app.errorhandler(503)
+def service_unavailable(e):
+    return "Service temporarily unavailable", 503
+

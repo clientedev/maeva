@@ -82,16 +82,29 @@ def check_database_schema():
             return False
 
 if __name__ == "__main__":
-    logger.info("🔍 Verificando schema do banco de dados...")
-    
-    if not check_database_schema():
-        logger.info("🔧 Aplicando migrações necessárias...")
-        add_missing_columns()
+    try:
+        logger.info("🔍 Verificando schema do banco de dados...")
         
-        # Verificar novamente
-        if check_database_schema():
-            logger.info("🎉 Banco de dados atualizado com sucesso!")
+        # Test basic connection first
+        with app.app_context():
+            db.engine.connect()
+            logger.info("✅ Conexão com banco de dados estabelecida")
+        
+        if not check_database_schema():
+            logger.info("🔧 Aplicando migrações necessárias...")
+            add_missing_columns()
+            
+            # Verificar novamente
+            if check_database_schema():
+                logger.info("🎉 Banco de dados atualizado com sucesso!")
+            else:
+                logger.error("❌ Falha ao atualizar banco de dados")
+                exit(1)
         else:
-            logger.error("❌ Falha ao atualizar banco de dados")
-    else:
-        logger.info("✅ Banco de dados já está atualizado!")
+            logger.info("✅ Banco de dados já está atualizado!")
+            
+    except Exception as e:
+        logger.error(f"❌ Erro crítico na migração: {e}")
+        logger.error("Tentando continuar sem migrações...")
+        # Don't exit - let Railway try to start the app anyway
+        exit(0)

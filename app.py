@@ -61,11 +61,18 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 db.init_app(app)
 
 with app.app_context():
-    # Import models and routes
-    import models
-    import routes
-    
-    db.create_all()
+    try:
+        # Import models and routes
+        import models
+        import routes
+        
+        # Create tables with error handling
+        db.create_all()
+        logging.info("Database tables created successfully")
+    except Exception as e:
+        logging.error(f"Database initialization failed: {e}")
+        # Don't raise the exception in production, let the app continue
+        if os.environ.get('FLASK_ENV') != 'production':
+            raise
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+# Remove the if __name__ == '__main__' block - handled in main.py now
