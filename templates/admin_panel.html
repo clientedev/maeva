@@ -130,7 +130,7 @@
                                 
                                 <div class="col-lg-6 mb-3">
                                     <label for="property_type" class="form-label">Tipo de Propriedade</label>
-                                    <select class="form-control luxury-input" id="property_type" name="property_type">
+                                    <select class="form-control luxury-select" id="property_type" name="property_type">
                                         <option value="">Selecione...</option>
                                         <option value="apartamento">Apartamento</option>
                                         <option value="casa">Casa</option>
@@ -334,7 +334,7 @@
                                 
                                 <div class="col-lg-6 mb-3">
                                     <label for="edit-property_type" class="form-label">Tipo de Propriedade</label>
-                                    <select class="form-control luxury-input" id="edit-property_type" name="property_type">
+                                    <select class="form-control luxury-select" id="edit-property_type" name="property_type">
                                         <option value="">Selecione...</option>
                                         <option value="apartamento" {% if edit_property.property_type == 'apartamento' %}selected{% endif %}>Apartamento</option>
                                         <option value="casa" {% if edit_property.property_type == 'casa' %}selected{% endif %}>Casa</option>
