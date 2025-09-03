@@ -490,10 +490,11 @@ def serve_property_main_image(property_id):
     if first_image and first_image.has_image_data():
         return Response(
             first_image.image_data,
-            mimetype=first_image.image_content_type,
+            mimetype=first_image.image_content_type or 'image/jpeg',
             headers={
                 'Content-Disposition': f'inline; filename="{first_image.image_filename}"',
-                'Cache-Control': 'max-age=3600'
+                'Cache-Control': 'public, max-age=86400',  # 24 hours cache
+                'ETag': f'property-{property_id}-main'
             }
         )
     
@@ -517,10 +518,11 @@ def serve_property_image(property_id, image_index):
     if property_image.has_image_data():
         return Response(
             property_image.image_data,
-            mimetype=property_image.image_content_type,
+            mimetype=property_image.image_content_type or 'image/jpeg',
             headers={
                 'Content-Disposition': f'inline; filename="{property_image.image_filename}"',
-                'Cache-Control': 'max-age=3600'
+                'Cache-Control': 'public, max-age=86400',
+                'ETag': f'property-{property_id}-{image_index}'
             }
         )
     
@@ -541,7 +543,7 @@ def serve_property_video(property_id):
     if property_obj.has_video_data():
         return Response(
             property_obj.video_data,
-            mimetype=property_obj.video_content_type,
+            mimetype=property_obj.video_content_type or 'video/mp4',
             headers={
                 'Content-Disposition': f'inline; filename="{property_obj.video_filename}"',
                 'Cache-Control': 'max-age=3600'

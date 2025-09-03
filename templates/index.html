@@ -42,9 +42,9 @@
             {% for property in properties %}
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="luxury-property-card">
-                    {% if property.images and property.images|length > 0 %}
+                    {% if (property.images and property.images|length > 0) or property.image_path %}
                     <div class="property-image-wrapper">
-                        <img src="{{ url_for('uploaded_file', filename=property.images[0].image_path.split('/')[-1]) }}" 
+                        <img src="{{ url_for('serve_property_main_image', property_id=property.id) }}" 
                              class="property-image" alt="{{ property.title }}">
                         <div class="property-overlay">
                             <div class="property-actions">
@@ -56,9 +56,9 @@
                             </div>
                         </div>
                     </div>
-                    {% elif property.image_path %}
+                    {% else %}
                     <div class="property-image-wrapper">
-                        <img src="{{ url_for('uploaded_file', filename=property.image_path.split('/')[-1]) }}" 
+                        <img src="{{ url_for('serve_property_main_image', property_id=property.id) }}" 
                              class="property-image" alt="{{ property.title }}">
                         <div class="property-overlay">
                             <div class="property-actions">
@@ -116,7 +116,7 @@
                 <div class="luxury-property-card">
                     {% if post.image_path %}
                     <div class="property-image-wrapper">
-                        <img src="{{ url_for('uploaded_file', filename=post.image_path.split('/')[-1]) }}" 
+                        <img src="{{ url_for('serve_post_image', post_id=post.id) }}" 
                              class="property-image" alt="{{ post.title }}">
                         <div class="property-overlay">
                             <div class="property-actions">
@@ -155,7 +155,7 @@
                     {% elif post.video_path %}
                     <div class="property-image-wrapper video-thumbnail">
                         <video class="property-image" preload="metadata" muted>
-                            <source src="{{ url_for('uploaded_file', filename=post.video_path.split('/')[-1]) }}#t=0.5" type="video/mp4">
+                            <source src="{{ url_for('serve_post_video', post_id=post.id) }}#t=0.5" type="video/mp4">
                         </video>
                         <div class="video-play-overlay">
                             <i class="fas fa-play-circle"></i>

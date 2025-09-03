@@ -53,12 +53,12 @@
                             <div class="admin-property-card">
                                 {% if property.images and property.images|length > 0 %}
                                 <div class="property-image-admin">
-                                    <img src="{{ url_for('uploaded_file', filename=property.images[0].image_path.split('/')[-1]) }}" 
+                                    <img src="{{ url_for('serve_property_main_image', property_id=property.id) }}" 
                                          alt="{{ property.title }}">
                                 </div>
                                 {% elif property.image_path %}
                                 <div class="property-image-admin">
-                                    <img src="{{ url_for('uploaded_file', filename=property.image_path.split('/')[-1]) }}" 
+                                    <img src="{{ url_for('serve_property_main_image', property_id=property.id) }}" 
                                          alt="{{ property.title }}">
                                 </div>
                                 {% endif %}
@@ -217,7 +217,7 @@
                             <div class="admin-property-card">
                                 {% if post.image_path %}
                                 <div class="property-image-admin">
-                                    <img src="{{ url_for('uploaded_file', filename=post.image_path.split('/')[-1]) }}" 
+                                    <img src="{{ url_for('serve_post_image', post_id=post.id) }}" 
                                          alt="{{ post.title }}">
                                 </div>
                                 {% endif %}
@@ -377,13 +377,13 @@
                                     {% if edit_property.images %}
                                         {% for img in edit_property.images %}
                                         <div class="current-image-item d-inline-block me-2 mb-2">
-                                            <img src="{{ url_for('uploaded_file', filename=img.image_path.split('/')[-1]) }}" 
+                                            <img src="{{ url_for('serve_property_image', property_id=edit_property.id, image_index=loop.index0) }}" 
                                                  alt="Property image" style="width: 100px; height: 80px; object-fit: cover; border-radius: 4px;">
                                         </div>
                                         {% endfor %}
                                     {% elif edit_property.image_path %}
                                         <div class="current-image-item d-inline-block me-2 mb-2">
-                                            <img src="{{ url_for('uploaded_file', filename=edit_property.image_path.split('/')[-1]) }}" 
+                                            <img src="{{ url_for('serve_property_main_image', property_id=edit_property.id) }}" 
                                                  alt="{{ edit_property.title }}" style="width: 100px; height: 80px; object-fit: cover; border-radius: 4px;">
                                         </div>
                                     {% endif %}
@@ -465,7 +465,7 @@
                             <div class="mb-3">
                                 <label class="form-label text-white">Imagem Atual</label>
                                 <div class="current-image mb-2">
-                                    <img src="{{ url_for('uploaded_file', filename=edit_post.image_path.split('/')[-1]) }}" 
+                                    <img src="{{ url_for('serve_post_image', post_id=edit_post.id) }}" 
                                          alt="{{ edit_post.title }}" style="width: 150px; height: 120px; object-fit: cover; border-radius: 4px;">
                                 </div>
                             </div>
