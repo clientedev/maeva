@@ -500,6 +500,21 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(-3px);
 }
 
+/* Hide problematic elements that create square boxes */
+.admin-access-link,
+.admin-access-link i,
+.fas.fa-cog,
+i.fas.fa-cog,
+*[class*="fa-cog"] {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Remove pseudo-elements that might create squares */
+.about-image::after {
+    display: none !important;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .stat-number {
@@ -592,6 +607,7 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--luxury-gold) !important;
 }
 
+/* Navigation link underline removed to prevent squares
 .luxury-nav-link::after {
     content: '';
     position: absolute;
@@ -607,6 +623,7 @@ h1, h2, h3, h4, h5, h6 {
 .luxury-nav-link:hover::after {
     width: 100%;
 }
+*/
 
 /* Buttons */
 .btn-luxury-gold {
