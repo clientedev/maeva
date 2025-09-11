@@ -41,53 +41,63 @@
         <div class="row">
             {% for property in properties %}
             <div class="col-lg-4 col-md-6 mb-4">
-                <div class="luxury-property-card">
-                    {% if (property.images and property.images|length > 0) or property.image_path %}
-                    <div class="property-image-wrapper">
-                        <img src="{{ url_for('serve_property_main_image', property_id=property.id) }}" 
-                             class="property-image" alt="{{ property.title }}">
-                        <div class="property-overlay">
-                            <div class="property-actions">
-                                <button class="btn btn-luxury-gold btn-sm share-property" 
-                                        data-title="{{ property.title }}" 
-                                        data-url="{{ url_for('gallery', _external=True) }}">
-                                    <i class="fas fa-share-alt"></i>
-                                </button>
+                <a href="{{ url_for('property_detail', property_id=property.id) }}" class="property-link">
+                    <div class="luxury-property-card property-card-clickable">
+                        {% if (property.images and property.images|length > 0) or property.image_path %}
+                        <div class="property-image-wrapper">
+                            <img src="{{ url_for('serve_property_main_image', property_id=property.id) }}" 
+                                 class="property-image" alt="{{ property.title }}">
+                            <div class="property-overlay">
+                                <div class="property-actions">
+                                    <button class="btn btn-luxury-gold btn-sm view-property-btn">
+                                        <i class="fas fa-eye"></i> Ver Detalhes
+                                    </button>
+                                    <button class="btn btn-luxury-outline btn-sm share-property" 
+                                            data-title="{{ property.title }}" 
+                                            data-url="{{ url_for('property_detail', property_id=property.id, _external=True) }}"
+                                            onclick="event.preventDefault(); event.stopPropagation();">
+                                        <i class="fas fa-share-alt"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    {% else %}
-                    <div class="property-image-wrapper">
-                        <img src="{{ url_for('serve_property_main_image', property_id=property.id) }}" 
-                             class="property-image" alt="{{ property.title }}">
-                        <div class="property-overlay">
-                            <div class="property-actions">
-                                <button class="btn btn-luxury-gold btn-sm share-property" 
-                                        data-title="{{ property.title }}" 
-                                        data-url="{{ url_for('gallery', _external=True) }}">
-                                    <i class="fas fa-share-alt"></i>
-                                </button>
+                        {% else %}
+                        <div class="property-image-wrapper">
+                            <img src="{{ url_for('serve_property_main_image', property_id=property.id) }}" 
+                                 class="property-image" alt="{{ property.title }}">
+                            <div class="property-overlay">
+                                <div class="property-actions">
+                                    <button class="btn btn-luxury-gold btn-sm view-property-btn">
+                                        <i class="fas fa-eye"></i> Ver Detalhes
+                                    </button>
+                                    <button class="btn btn-luxury-outline btn-sm share-property" 
+                                            data-title="{{ property.title }}" 
+                                            data-url="{{ url_for('property_detail', property_id=property.id, _external=True) }}"
+                                            onclick="event.preventDefault(); event.stopPropagation();">
+                                        <i class="fas fa-share-alt"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                        {% endif %}
+                        
+                        <div class="property-content">
+                            <h5 class="property-title">{{ property.title }}</h5>
+                            {% if property.location %}
+                            <p class="property-location">
+                                <i class="fas fa-map-marker-alt luxury-text-gold me-1"></i>
+                                {{ property.location }}
+                            </p>
+                            {% endif %}
+                            {% if property.price %}
+                            <p class="property-price">{{ property.price }}</p>
+                            {% endif %}
+                            {% if property.description %}
+                            <p class="property-description">{{ property.description[:100] }}...</p>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% endif %}
-                    
-                    <div class="property-content">
-                        <h5 class="property-title">{{ property.title }}</h5>
-                        {% if property.location %}
-                        <p class="property-location">
-                            <i class="fas fa-map-marker-alt luxury-text-gold me-1"></i>
-                            {{ property.location }}
-                        </p>
-                        {% endif %}
-                        {% if property.price %}
-                        <p class="property-price">{{ property.price }}</p>
-                        {% endif %}
-                        {% if property.description %}
-                        <p class="property-description">{{ property.description[:100] }}...</p>
-                        {% endif %}
-                    </div>
-                </div>
+                </a>
             </div>
             {% endfor %}
         </div>

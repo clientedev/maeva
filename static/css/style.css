@@ -1,5 +1,41 @@
 /* Luxury Real Estate Website Styles */
 
+/* Property Card Clickable Styles */
+.property-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.property-link:hover {
+    color: inherit;
+    text-decoration: none;
+}
+
+.property-card-clickable {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.property-card-clickable:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(212, 175, 55, 0.2), 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+.property-card-clickable:hover .property-image {
+    transform: scale(1.05);
+}
+
+.property-card-clickable .property-overlay {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.property-card-clickable:hover .property-overlay {
+    opacity: 1;
+}
+
 :root {
     --luxury-black: #0a0a0a;
     --luxury-dark: #1a1a1a;

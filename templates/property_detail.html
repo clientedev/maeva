@@ -1,0 +1,627 @@
+{% extends "base.html" %}
+
+{% block title %}{{ property.title }} - Maeva Investimentos Imobiliários{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section py-3 luxury-bg-dark">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 luxury-breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('index') }}" class="text-white-50">
+                        <i class="fas fa-home me-1"></i>Home
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('gallery') }}" class="text-white-50">Galeria</a>
+                </li>
+                <li class="breadcrumb-item active luxury-text-gold" aria-current="page">
+                    {{ property.title }}
+                </li>
+            </ol>
+        </nav>
+        <div class="mt-2">
+            <a href="{{ url_for('gallery') }}" class="btn btn-luxury-outline btn-sm">
+                <i class="fas fa-arrow-left me-2"></i>Voltar à Galeria
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Property Hero Section -->
+<section class="property-hero py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Property Images Gallery -->
+            <div class="col-lg-8 mb-4">
+                {% if property_images and property_images|length > 0 %}
+                <div class="property-gallery">
+                    <!-- Main Image Display -->
+                    <div class="main-image-wrapper mb-3">
+                        <img id="mainPropertyImage" 
+                             src="{{ url_for('serve_property_image', property_id=property.id, image_index=0) if property_images|length > 0 else url_for('serve_property_main_image', property_id=property.id) }}" 
+                             class="property-main-image" 
+                             alt="{{ property.title }}">
+                        
+                        <!-- Image Navigation Arrows -->
+                        {% if property_images|length > 1 %}
+                        <button class="image-nav-btn prev-btn" onclick="changeImage(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="image-nav-btn next-btn" onclick="changeImage(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        {% endif %}
+                        
+                        <!-- Image Counter -->
+                        {% if property_images|length > 1 %}
+                        <div class="image-counter">
+                            <span id="currentImageIndex">1</span> / {{ property_images|length }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Thumbnail Gallery -->
+                    {% if property_images|length > 1 %}
+                    <div class="thumbnail-gallery">
+                        {% for image in property_images[:8] %}
+                        <div class="thumbnail-item {% if loop.index == 1 %}active{% endif %}" 
+                             data-image-index="{{ loop.index0 }}">
+                            <img src="{{ url_for('serve_property_image', property_id=property.id, image_index=loop.index0) }}" 
+                                 alt="Imagem {{ loop.index }}" 
+                                 class="thumbnail-image">
+                        </div>
+                        {% endfor %}
+                        {% if property_images|length > 8 %}
+                        <div class="thumbnail-item more-images">
+                            <div class="more-overlay">
+                                <i class="fas fa-plus"></i>
+                                <span>+{{ property_images|length - 8 }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% elif property.image_path or property.video_data %}
+                <div class="property-gallery">
+                    <div class="main-image-wrapper">
+                        {% if property.video_data %}
+                        <video class="property-main-image" controls>
+                            <source src="{{ url_for('serve_property_video', property_id=property.id) }}" type="video/mp4">
+                            Seu navegador não suporta vídeos HTML5.
+                        </video>
+                        {% else %}
+                        <img src="{{ url_for('serve_property_main_image', property_id=property.id) }}" 
+                             class="property-main-image" 
+                             alt="{{ property.title }}">
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-image-placeholder">
+                    <i class="fas fa-image luxury-text-gold"></i>
+                    <p class="text-white-50 mt-2">Imagens em breve</p>
+                </div>
+                {% endif %}
+                
+                <!-- Video Section (if available and separate from images) -->
+                {% if property.video_data and property_images and property_images|length > 0 %}
+                <div class="property-video mt-4">
+                    <h5 class="luxury-text-gold mb-3">
+                        <i class="fas fa-play-circle me-2"></i>Vídeo da Propriedade
+                    </h5>
+                    <div class="video-wrapper">
+                        <video class="property-video-player" controls>
+                            <source src="{{ url_for('serve_property_video', property_id=property.id) }}" type="video/mp4">
+                            Seu navegador não suporta vídeos HTML5.
+                        </video>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Property Information -->
+            <div class="col-lg-4">
+                <div class="property-info-card">
+                    <div class="property-header mb-4">
+                        <h1 class="property-title">{{ property.title }}</h1>
+                        {% if property.featured %}
+                        <span class="featured-badge">
+                            <i class="fas fa-star me-1"></i>Destaque
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Property Details -->
+                    <div class="property-details mb-4">
+                        {% if property.price %}
+                        <div class="detail-item price-item">
+                            <i class="fas fa-tag luxury-text-gold me-2"></i>
+                            <span class="property-price">{{ property.price }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if property.location %}
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt luxury-text-gold me-2"></i>
+                            <span class="property-location">{{ property.location }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if property.property_type %}
+                        <div class="detail-item">
+                            <i class="fas fa-home luxury-text-gold me-2"></i>
+                            <span class="property-type">{{ property.property_type|title }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="detail-item">
+                            <i class="fas fa-calendar luxury-text-gold me-2"></i>
+                            <span class="property-date">Adicionado em {{ property.created_at.strftime('%d/%m/%Y') }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Actions -->
+                    <div class="contact-actions mb-4">
+                        <h5 class="luxury-text-gold mb-3">Interessado neste imóvel?</h5>
+                        <div class="action-buttons">
+                            <a href="https://wa.me/5511987557913?text=Olá! Tenho interesse no imóvel: {{ property.title }}" 
+                               class="btn btn-luxury-gold w-100 mb-3" 
+                               target="_blank">
+                                <i class="fab fa-whatsapp me-2"></i>Falar no WhatsApp
+                            </a>
+                            <a href="{{ url_for('contact') }}?property={{ property.title }}" 
+                               class="btn btn-luxury-outline w-100 mb-3">
+                                <i class="fas fa-envelope me-2"></i>Enviar E-mail
+                            </a>
+                            <button class="btn btn-luxury-outline w-100 share-property" 
+                                    data-title="{{ property.title }}" 
+                                    data-url="{{ url_for('property_detail', property_id=property.id, _external=True) }}">
+                                <i class="fas fa-share-alt me-2"></i>Compartilhar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Contact Form -->
+                    <div class="quick-contact-form">
+                        <h6 class="luxury-text-gold mb-3">Contato Rápido</h6>
+                        <form action="{{ url_for('contact_submit') }}" method="post" class="quick-form">
+                            <input type="hidden" name="interest" value="{{ property.title }}">
+                            <div class="mb-3">
+                                <input type="text" class="form-control luxury-input" name="name" placeholder="Seu nome" required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="tel" class="form-control luxury-input" name="phone" placeholder="Telefone/WhatsApp" required>
+                            </div>
+                            <div class="mb-3">
+                                <textarea class="form-control luxury-input" name="message" rows="3" 
+                                         placeholder="Mensagem (opcional)">Tenho interesse no imóvel: {{ property.title }}</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-luxury-gold w-100">
+                                <i class="fas fa-paper-plane me-2"></i>Enviar Contato
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Property Description -->
+{% if property.description %}
+<section class="property-description py-5 luxury-bg-dark">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h3 class="luxury-heading text-center mb-4">Sobre este Imóvel</h3>
+                <div class="description-content">
+                    <p class="lead text-white-75">{{ property.description|replace('\n', '<br>')|safe }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Related Properties -->
+<section class="related-properties py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h3 class="luxury-heading">Outros Imóveis que Podem Interessar</h3>
+            <p class="text-white-50">Veja outras opções em nosso portfólio</p>
+        </div>
+        
+        <div class="text-center">
+            <a href="{{ url_for('gallery') }}" class="btn btn-luxury-outline btn-lg">
+                <i class="fas fa-images me-2"></i>Ver Toda a Galeria
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<!-- Property images data -->
+<script type="application/json" id="propertyImagesData">
+{% if property_images and property_images|length > 0 %}
+[
+    {% for image in property_images -%}
+    {
+        "url": {{ url_for('serve_property_image', property_id=property.id, image_index=loop.index0)|tojson }},
+        "alt": {{ ("Imagem " + loop.index|string)|tojson }}
+    }
+    {%- if not loop.last %},{% endif %}
+    {%- endfor %}
+]
+{% else %}
+[]
+{% endif %}
+</script>
+
+<script>
+// Property image gallery functionality
+let currentImageIndex = 0;
+let propertyImages = [];
+
+// Initialize from JSON data
+document.addEventListener('DOMContentLoaded', function() {
+    const dataElement = document.getElementById('propertyImagesData');
+    if (dataElement) {
+        try {
+            propertyImages = JSON.parse(dataElement.textContent);
+        } catch (e) {
+            console.error('Error parsing property images data:', e);
+            propertyImages = [];
+        }
+    }
+    
+    // Add click listeners to thumbnail items
+    document.querySelectorAll('.thumbnail-item[data-image-index]').forEach(function(thumb) {
+        thumb.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-image-index'));
+            selectImage(index);
+        });
+    });
+});
+
+function changeImage(direction) {
+    if (propertyImages.length <= 1) return;
+    
+    currentImageIndex += direction;
+    
+    if (currentImageIndex >= propertyImages.length) {
+        currentImageIndex = 0;
+    } else if (currentImageIndex < 0) {
+        currentImageIndex = propertyImages.length - 1;
+    }
+    
+    updateMainImage();
+}
+
+function selectImage(index) {
+    currentImageIndex = index;
+    updateMainImage();
+}
+
+function updateMainImage() {
+    if (propertyImages.length > 0) {
+        const mainImage = document.getElementById('mainPropertyImage');
+        const currentIndexSpan = document.getElementById('currentImageIndex');
+        
+        if (mainImage) {
+            mainImage.src = propertyImages[currentImageIndex].url;
+            mainImage.alt = propertyImages[currentImageIndex].alt;
+        }
+        
+        if (currentIndexSpan) {
+            currentIndexSpan.textContent = currentImageIndex + 1;
+        }
+        
+        // Update thumbnail active state
+        document.querySelectorAll('.thumbnail-item').forEach((thumb, index) => {
+            if (index === currentImageIndex) {
+                thumb.classList.add('active');
+            } else {
+                thumb.classList.remove('active');
+            }
+        });
+    }
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft') {
+        changeImage(-1);
+    } else if (e.key === 'ArrowRight') {
+        changeImage(1);
+    }
+});
+
+// Share functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const shareButtons = document.querySelectorAll('.share-property');
+    
+    shareButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const title = this.dataset.title;
+            const url = this.dataset.url;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: `Confira este imóvel: ${title}`,
+                    url: url
+                }).catch(console.error);
+            } else {
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(url).then(() => {
+                    // Show temporary feedback
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check me-2"></i>Link Copiado!';
+                    this.classList.remove('btn-luxury-outline');
+                    this.classList.add('btn-luxury-gold');
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.add('btn-luxury-outline');
+                        this.classList.remove('btn-luxury-gold');
+                    }, 2000);
+                });
+            }
+        });
+    });
+});
+</script>
+
+<style>
+/* Property Detail Specific Styles */
+.breadcrumb-section {
+    margin-top: 80px; /* Account for fixed navbar */
+}
+
+.luxury-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    color: var(--luxury-gold);
+    content: "›";
+}
+
+.property-gallery {
+    position: relative;
+}
+
+.main-image-wrapper {
+    position: relative;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.property-main-image {
+    width: 100%;
+    height: 500px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.image-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(212, 175, 55, 0.9);
+    border: none;
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.image-nav-btn:hover {
+    background: var(--luxury-gold);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.prev-btn {
+    left: 20px;
+}
+
+.next-btn {
+    right: 20px;
+}
+
+.image-counter {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.thumbnail-gallery {
+    display: flex;
+    gap: 10px;
+    margin-top: 1rem;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.thumbnail-item {
+    flex-shrink: 0;
+    width: 80px;
+    height: 60px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.thumbnail-item.active {
+    border-color: var(--luxury-gold);
+}
+
+.thumbnail-item:hover {
+    border-color: var(--luxury-light-gold);
+}
+
+.thumbnail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.more-images {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(26, 26, 26, 0.9);
+    color: var(--luxury-gold);
+    font-size: 0.8rem;
+    flex-direction: column;
+}
+
+.property-info-card {
+    background: linear-gradient(135deg, var(--luxury-dark) 0%, #0f0f0f 100%);
+    padding: 2rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(212, 175, 55, 0.1);
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+}
+
+.property-title {
+    font-size: 1.8rem;
+    color: var(--luxury-white);
+    margin-bottom: 1rem;
+    line-height: 1.3;
+}
+
+.featured-badge {
+    background: linear-gradient(45deg, var(--luxury-gold), var(--luxury-light-gold));
+    color: var(--luxury-black);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.property-details .detail-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: var(--luxury-white);
+}
+
+.property-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--luxury-gold);
+}
+
+.contact-actions {
+    border-top: 1px solid rgba(212, 175, 55, 0.2);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    padding: 1.5rem 0;
+}
+
+.quick-contact-form {
+    margin-top: 1.5rem;
+}
+
+.luxury-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    color: var(--luxury-white);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+}
+
+.luxury-input:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--luxury-gold);
+    color: var(--luxury-white);
+    box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+}
+
+.luxury-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.property-description {
+    text-align: center;
+}
+
+.description-content {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 2rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.no-image-placeholder {
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 2px dashed rgba(212, 175, 55, 0.3);
+    border-radius: 1rem;
+}
+
+.no-image-placeholder i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.property-video-player {
+    width: 100%;
+    height: 300px;
+    border-radius: 0.5rem;
+}
+
+.video-wrapper {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+    .property-main-image {
+        height: 300px;
+    }
+    
+    .property-info-card {
+        position: static;
+        margin-top: 2rem;
+    }
+    
+    .image-nav-btn {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .prev-btn {
+        left: 10px;
+    }
+    
+    .next-btn {
+        right: 10px;
+    }
+    
+    .thumbnail-gallery {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

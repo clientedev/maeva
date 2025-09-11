@@ -7,6 +7,7 @@ from flask import render_template, request, redirect, url_for, session, flash, j
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from openai import OpenAI
+from sqlalchemy.orm import joinedload
 # Import from main to avoid circular imports
 try:
     from main import app, db
@@ -258,6 +259,26 @@ def gallery():
     properties = Property.query.order_by(Property.created_at.desc()).paginate(
         page=page, per_page=per_page, error_out=False)
     return render_template('gallery.html', properties=properties)
+
+@app.route('/property/<int:property_id>')
+def property_detail(property_id):
+    """Show detailed view of a single property with optimized queries"""
+    try:
+        # Load property
+        property_obj = Property.query.get_or_404(property_id)
+        
+        # Get all images ordered by order_index
+        property_images = PropertyImage.query.filter_by(
+            property_id=property_id
+        ).order_by(PropertyImage.order_index.asc()).all()
+        
+        return render_template('property_detail.html', 
+                             property=property_obj, 
+                             property_images=property_images)
+    except Exception as e:
+        print(f"Error loading property {property_id}: {e}")
+        flash('Propriedade não encontrada.', 'error')
+        return redirect(url_for('gallery'))
 
 @app.route('/contato')
 def contact():
