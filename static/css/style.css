@@ -500,15 +500,6 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(-3px);
 }
 
-/* Hide problematic elements that create square boxes */
-.admin-access-link,
-.admin-access-link i,
-.fas.fa-cog,
-i.fas.fa-cog,
-*[class*="fa-cog"] {
-    display: none !important;
-    visibility: hidden !important;
-}
 
 /* Remove pseudo-elements that might create squares */
 .about-image::after {
