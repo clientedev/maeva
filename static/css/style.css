@@ -30,6 +30,509 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
 }
 
+/* About Page Styles */
+.hero-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(26, 26, 26, 0.8) 100%);
+    z-index: 1;
+}
+
+.hero-badge .badge {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--luxury-gold);
+    border: 1px solid var(--luxury-gold);
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.hero-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    color: var(--luxury-white);
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+}
+
+.hero-subtitle {
+    font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 60ch;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Trust Stats Section */
+.trust-stats-section {
+    background: linear-gradient(135deg, var(--luxury-dark) 0%, #0f0f0f 100%);
+    padding: 4rem 0;
+    border-top: 1px solid rgba(212, 175, 55, 0.1);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.stat-card {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--luxury-gold);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(212, 175, 55, 0.3);
+}
+
+.stat-label {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* About Story Section */
+.about-story-section {
+    padding: 5rem 0;
+    background: var(--luxury-black);
+}
+
+.about-image-wrapper {
+    position: relative;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.about-main-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.about-main-image:hover {
+    transform: scale(1.05);
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(212, 175, 55, 0.1) 0%, transparent 100%);
+    border-radius: 1rem;
+}
+
+.section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--luxury-gold);
+    margin-bottom: 1.5rem;
+}
+
+.lead-text {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.7;
+    font-weight: 400;
+}
+
+.story-highlights {
+    margin: 2rem 0;
+}
+
+.highlight-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.highlight-item i {
+    font-size: 1.2rem;
+    margin-right: 1rem;
+}
+
+.expertise-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.expertise-tag {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--luxury-gold);
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--luxury-gold) 50%, transparent 100%);
+    margin: 3rem 0;
+}
+
+/* Values Section */
+.values-section {
+    padding: 5rem 0;
+    background: linear-gradient(135deg, #1a1a1a 0%, var(--luxury-black) 100%);
+}
+
+.section-header {
+    margin-bottom: 3rem;
+}
+
+.section-subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 50ch;
+    margin: 0 auto;
+}
+
+.modern-value-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(212, 175, 55, 0.1);
+    border-radius: 1rem;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    height: 100%;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-value-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+}
+
+.value-icon-ring {
+    width: 80px;
+    height: 80px;
+    border: 2px solid var(--luxury-gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.value-icon-ring i {
+    font-size: 2rem;
+    color: var(--luxury-gold);
+}
+
+.modern-value-card:hover .value-icon-ring {
+    background: var(--luxury-gold);
+}
+
+.modern-value-card:hover .value-icon-ring i {
+    color: var(--luxury-black);
+}
+
+.value-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--luxury-white);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.value-description {
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* Founder Section */
+.founder-section {
+    padding: 5rem 0;
+    background: var(--luxury-black);
+}
+
+.founder-card {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.8) 0%, rgba(10, 10, 10, 0.9) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 1.5rem;
+    padding: 3rem;
+    backdrop-filter: blur(10px);
+}
+
+.founder-photo-wrapper {
+    position: relative;
+    text-align: center;
+}
+
+.founder-image {
+    width: 100%;
+    max-width: 350px;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 1rem;
+    border: 3px solid var(--luxury-gold);
+    box-shadow: 0 10px 40px rgba(212, 175, 55, 0.2);
+}
+
+.founder-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    color: var(--luxury-gold);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.founder-title {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1rem;
+    font-weight: 400;
+}
+
+.founder-credentials {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.credential-badge {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--luxury-gold);
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.contact-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.contact-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.contact-icon {
+    width: 45px;
+    height: 45px;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.contact-icon i {
+    color: var(--luxury-gold);
+    font-size: 1.2rem;
+}
+
+.contact-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-value {
+    color: var(--luxury-white);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.contact-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+}
+
+.founder-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.btn-primary-gold {
+    background: var(--luxury-gold);
+    color: var(--luxury-black);
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.btn-primary-gold:hover {
+    background: #c19b26;
+    color: var(--luxury-black);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+}
+
+.btn-secondary-gold {
+    background: transparent;
+    color: var(--luxury-gold);
+    border: 1px solid var(--luxury-gold);
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary-gold:hover {
+    background: var(--luxury-gold);
+    color: var(--luxury-black);
+    transform: translateY(-2px);
+}
+
+/* Final CTA Section */
+.final-cta-section {
+    position: relative;
+    padding: 5rem 0;
+    background: linear-gradient(135deg, var(--luxury-dark) 0%, var(--luxury-black) 100%);
+    overflow: hidden;
+}
+
+.cta-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+    z-index: 1;
+}
+
+.cta-content {
+    position: relative;
+    z-index: 2;
+}
+
+.cta-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    color: var(--luxury-white);
+    margin-bottom: 1.5rem;
+    line-height: 1.3;
+}
+
+.cta-subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 60ch;
+    margin: 0 auto 2.5rem;
+    line-height: 1.6;
+}
+
+.cta-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.btn-cta-primary {
+    background: var(--luxury-gold);
+    color: var(--luxury-black);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+}
+
+.btn-cta-primary:hover {
+    background: #c19b26;
+    color: var(--luxury-black);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+}
+
+.btn-cta-secondary {
+    background: transparent;
+    color: var(--luxury-white);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 1.1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.btn-cta-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--luxury-white);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-3px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .stat-number {
+        font-size: 2.5rem;
+    }
+    
+    .about-main-image {
+        height: 300px;
+    }
+    
+    .founder-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    .founder-image {
+        max-width: 280px;
+        height: 320px;
+    }
+    
+    .contact-grid {
+        margin-bottom: 2rem;
+    }
+    
+    .founder-actions {
+        justify-content: center;
+    }
+    
+    .cta-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
 .luxury-heading {
     font-family: 'Playfair Display', serif;
     color: var(--luxury-gold);

@@ -4,52 +4,99 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="page-hero">
+<section class="page-hero position-relative overflow-hidden">
+    <div class="hero-gradient"></div>
     <div class="container">
         <div class="row justify-content-center text-center">
-            <div class="col-lg-8">
-                <h1 class="page-title">Sobre Nós</h1>
-                <p class="page-subtitle">Mais de 13 anos conectando pessoas aos melhores imóveis de São Paulo</p>
+            <div class="col-lg-10">
+                <div class="hero-badge mb-3">
+                    <span class="badge luxury-badge-outline">Sobre a Maeva</span>
+                </div>
+                <h1 class="hero-title mb-4">Excelência em Investimentos Imobiliários</h1>
+                <p class="hero-subtitle mb-0">Há mais de 13 anos conectando pessoas aos melhores imóveis de médio e alto padrão em São Paulo</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trust Stats Section -->
+<section class="trust-stats-section">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-number">13+</div>
+                    <div class="stat-label">Anos de Experiência</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">Imóveis Vendidos</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-number">20+</div>
+                    <div class="stat-label">Construtoras Parceiras</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stat-card">
+                    <div class="stat-number">95%</div>
+                    <div class="stat-label">Satisfação dos Clientes</div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
 <!-- About Content -->
-<section class="py-5">
+<section class="about-story-section">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-6 mb-4">
-                <div class="about-image">
+            <div class="col-lg-6 mb-5">
+                <div class="about-image-wrapper">
                     <img src="{{ url_for('static', filename='images/about-image.jpg') }}" 
-                         alt="Maeva Corretora" class="img-fluid luxury-image">
+                         alt="Maeva Investimentos - Excelência em Imóveis" 
+                         class="img-fluid about-main-image"
+                         loading="lazy">
+                    <div class="image-overlay"></div>
                 </div>
             </div>
             
-            <div class="col-lg-6">
-                <div class="about-content">
-                    <h2 class="luxury-heading mb-4">Nossa História</h2>
-                    <p class="text-white mb-4">
-                        Com mais de 13 anos de experiência no mercado imobiliário de médio e alto padrão, 
-                        ajudo clientes a realizarem seus sonhos e alcançarem excelentes investimentos. 
+            <div class="col-lg-6 mb-5">
+                <div class="story-content">
+                    <h2 class="section-title mb-4">Nossa História</h2>
+                    <p class="lead-text mb-4">
+                        Há mais de uma década, construímos nossa reputação como referência em 
+                        investimentos imobiliários de médio e alto padrão em São Paulo.
                     </p>
                     
-                    <p class="text-white mb-4">
-                        Atuo em parceria com as principais construtoras de São Paulo, com foco em 
-                        empreendimentos exclusivos como o Parque Global – um dos maiores e mais 
-                        completos projetos do Brasil.
-                    </p>
+                    <div class="story-highlights">
+                        <div class="highlight-item">
+                            <i class="fas fa-check-circle luxury-text-gold me-3"></i>
+                            <span>Especialização em empreendimentos exclusivos e de alto valor</span>
+                        </div>
+                        <div class="highlight-item">
+                            <i class="fas fa-check-circle luxury-text-gold me-3"></i>
+                            <span>Parcerias estratégicas com as principais construtoras de SP</span>
+                        </div>
+                        <div class="highlight-item">
+                            <i class="fas fa-check-circle luxury-text-gold me-3"></i>
+                            <span>Foco no Parque Global e grandes empreendimentos</span>
+                        </div>
+                        <div class="highlight-item">
+                            <i class="fas fa-check-circle luxury-text-gold me-3"></i>
+                            <span>Atendimento personalizado e vínculos de confiança</span>
+                        </div>
+                    </div>
                     
-                    <p class="text-white mb-4">
-                        Meu compromisso é criar vínculos de confiança e oferecer um atendimento 
-                        personalizado, unindo profissionalismo e proximidade em cada negociação.
-                    </p>
-                    
-                    <div class="expertise-badges">
-                        <span class="badge luxury-badge me-2 mb-2">13+ Anos de Experiência</span>
-                        <span class="badge luxury-badge me-2 mb-2">Alto Padrão</span>
-                        <span class="badge luxury-badge me-2 mb-2">Grandes Empreendimentos</span>
-                        <span class="badge luxury-badge me-2 mb-2">Parque Global</span>
+                    <div class="expertise-tags mt-4">
+                        <span class="expertise-tag">13+ Anos</span>
+                        <span class="expertise-tag">Alto Padrão</span>
+                        <span class="expertise-tag">Parque Global</span>
+                        <span class="expertise-tag">Exclusividade</span>
                     </div>
                 </div>
             </div>
@@ -57,50 +104,52 @@
     </div>
 </section>
 
+<div class="section-divider"></div>
+
 <!-- Values Section -->
-<section class="py-5 luxury-bg-dark">
+<section class="values-section">
     <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="luxury-heading">Nossos Valores</h2>
-            <p class="text-white-50">Os princípios que orientam nossa atuação no mercado imobiliário</p>
+        <div class="section-header text-center mb-5">
+            <h2 class="section-title">Nossos Valores</h2>
+            <p class="section-subtitle">Os pilares que sustentam nossa excelência no mercado imobiliário</p>
         </div>
         
         <div class="row">
             <div class="col-lg-4 mb-4">
-                <div class="value-card">
-                    <div class="value-icon">
+                <div class="modern-value-card">
+                    <div class="value-icon-ring">
                         <i class="fas fa-handshake"></i>
                     </div>
-                    <h4 class="value-title">Confiança</h4>
+                    <h3 class="value-title">Confiança</h3>
                     <p class="value-description">
-                        Construímos relacionamentos sólidos baseados na transparência e credibilidade, 
-                        criando vínculos duradouros com nossos clientes.
+                        Transparência e credibilidade em cada negociação, construindo 
+                        relacionamentos duradouros baseados na confiança mútua.
                     </p>
                 </div>
             </div>
             
             <div class="col-lg-4 mb-4">
-                <div class="value-card">
-                    <div class="value-icon">
+                <div class="modern-value-card">
+                    <div class="value-icon-ring">
                         <i class="fas fa-star"></i>
                     </div>
-                    <h4 class="value-title">Excelência</h4>
+                    <h3 class="value-title">Excelência</h3>
                     <p class="value-description">
-                        Comprometemo-nos com a mais alta qualidade em cada serviço prestado, 
-                        superando expectativas em todos os aspectos.
+                        Compromisso com a mais alta qualidade em cada serviço, 
+                        superando expectativas a cada oportunidade.
                     </p>
                 </div>
             </div>
             
             <div class="col-lg-4 mb-4">
-                <div class="value-card">
-                    <div class="value-icon">
+                <div class="modern-value-card">
+                    <div class="value-icon-ring">
                         <i class="fas fa-users"></i>
                     </div>
-                    <h4 class="value-title">Personalização</h4>
+                    <h3 class="value-title">Personalização</h3>
                     <p class="value-description">
-                        Cada cliente é único, por isso oferecemos soluções personalizadas 
-                        que atendem às necessidades específicas de cada investidor.
+                        Soluções sob medida para cada cliente, respeitando 
+                        necessidades específicas e objetivos únicos.
                     </p>
                 </div>
             </div>
@@ -108,58 +157,82 @@
     </div>
 </section>
 
-<!-- Team Section -->
-<section class="py-5">
+<!-- Founder Spotlight Section -->
+<section class="founder-section">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-5 mb-4">
-                <div class="team-photo text-center">
-                    <img src="{{ url_for('static', filename='images/rose-ventura.png') }}" 
-                         alt="Rose Ventura - Especialista em Investimentos Imobiliários" 
-                         class="img-fluid rounded-3 luxury-image" 
-                         style="max-height: 400px; object-fit: cover; border: 3px solid #D4AF37; box-shadow: 0 8px 32px rgba(212, 175, 55, 0.3);">
-                </div>
-            </div>
-            
-            <div class="col-lg-7">
-                <div class="team-info">
-                    <h2 class="luxury-heading mb-3">Rose Ventura</h2>
-                    <p class="text-white mb-4 fs-5">Especialista em Investimentos Imobiliários</p>
-                    
-                    <div class="team-contact mb-4">
-                        <div class="contact-item mb-3 d-flex align-items-center">
-                            <i class="fab fa-whatsapp luxury-text-gold me-3 fs-4"></i>
-                            <div>
-                                <span class="text-white fs-5">(11) 98755-7913</span>
-                                <small class="d-block text-white-50">WhatsApp Comercial</small>
-                            </div>
-                        </div>
-                        <div class="contact-item mb-3 d-flex align-items-center">
-                            <i class="fab fa-instagram luxury-text-gold me-3 fs-4"></i>
-                            <div>
-                                <span class="text-white fs-5">@Roseaventura</span>
-                                <small class="d-block text-white-50">Instagram</small>
-                            </div>
-                        </div>
-                        <div class="contact-item mb-4 d-flex align-items-center">
-                            <i class="fab fa-linkedin luxury-text-gold me-3 fs-4"></i>
-                            <div>
-                                <span class="text-white fs-5">Rose Ventura</span>
-                                <small class="d-block text-white-50">LinkedIn</small>
-                            </div>
-                        </div>
+        <div class="founder-card">
+            <div class="row align-items-center">
+                <div class="col-lg-5 mb-4">
+                    <div class="founder-photo-wrapper">
+                        <img src="{{ url_for('static', filename='images/rose-ventura.png') }}" 
+                             alt="Rose Ventura - Especialista em Investimentos Imobiliários" 
+                             class="founder-image"
+                             loading="lazy">
+                        <div class="photo-frame"></div>
                     </div>
-                    
-                    <div class="social-connect">
-                        <a href="https://wa.me/5511987557913" class="btn btn-luxury-gold me-2 mb-2" target="_blank">
-                            <i class="fab fa-whatsapp me-1"></i> Contatar no WhatsApp
-                        </a>
-                        <a href="https://instagram.com/Roseaventura" class="btn btn-luxury-outline me-2 mb-2" target="_blank">
-                            <i class="fab fa-instagram me-1"></i> Seguir
-                        </a>
-                        <a href="https://linkedin.com/in/rose-ventura" class="btn btn-luxury-outline mb-2" target="_blank">
-                            <i class="fab fa-linkedin me-1"></i> Conectar
-                        </a>
+                </div>
+                
+                <div class="col-lg-7">
+                    <div class="founder-info">
+                        <div class="founder-header mb-4">
+                            <h2 class="founder-name">Rose Ventura</h2>
+                            <p class="founder-title">Especialista em Investimentos Imobiliários</p>
+                            <div class="founder-credentials">
+                                <span class="credential-badge">CRECI-SP Ativo</span>
+                                <span class="credential-badge">13+ Anos</span>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-grid mb-4">
+                            <div class="contact-row">
+                                <div class="contact-icon">
+                                    <i class="fab fa-whatsapp"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <span class="contact-value">(11) 98755-7913</span>
+                                    <span class="contact-label">WhatsApp Comercial</span>
+                                </div>
+                            </div>
+                            <div class="contact-row">
+                                <div class="contact-icon">
+                                    <i class="fab fa-instagram"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <span class="contact-value">@Roseaventura</span>
+                                    <span class="contact-label">Instagram</span>
+                                </div>
+                            </div>
+                            <div class="contact-row">
+                                <div class="contact-icon">
+                                    <i class="fab fa-linkedin"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <span class="contact-value">Rose Ventura</span>
+                                    <span class="contact-label">LinkedIn</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="founder-actions">
+                            <a href="https://wa.me/5511987557913" 
+                               class="btn btn-primary-gold me-2 mb-2" 
+                               target="_blank" 
+                               rel="noopener noreferrer">
+                                <i class="fab fa-whatsapp me-2"></i>Conversar no WhatsApp
+                            </a>
+                            <a href="https://instagram.com/Roseaventura" 
+                               class="btn btn-secondary-gold me-2 mb-2" 
+                               target="_blank" 
+                               rel="noopener noreferrer">
+                                <i class="fab fa-instagram me-2"></i>Seguir
+                            </a>
+                            <a href="https://linkedin.com/in/rose-ventura" 
+                               class="btn btn-secondary-gold mb-2" 
+                               target="_blank" 
+                               rel="noopener noreferrer">
+                                <i class="fab fa-linkedin me-2"></i>Conectar
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -168,15 +241,29 @@
 </section>
 
 <!-- Call to Action -->
-<section class="cta-section">
+<section class="final-cta-section">
+    <div class="cta-background"></div>
     <div class="container">
         <div class="row justify-content-center text-center">
-            <div class="col-lg-8">
-                <h2 class="cta-title">Pronto para encontrar seu próximo investimento?</h2>
-                <p class="cta-subtitle">Entre em contato e descubra como podemos ajudar você a realizar seus objetivos imobiliários</p>
-                <a href="{{ url_for('contact') }}" class="btn btn-luxury-gold btn-lg">
-                    <i class="fas fa-phone me-2"></i>Entre em Contato
-                </a>
+            <div class="col-lg-10">
+                <div class="cta-content">
+                    <h2 class="cta-title">Encontre seu Próximo Investimento de Sucesso</h2>
+                    <p class="cta-subtitle">
+                        Descubra oportunidades únicas no mercado imobiliário de alto padrão em São Paulo. 
+                        Vamos juntos realizar seus objetivos de investimento.
+                    </p>
+                    <div class="cta-actions">
+                        <a href="https://wa.me/5511987557913" 
+                           class="btn btn-cta-primary me-3 mb-2" 
+                           target="_blank" 
+                           rel="noopener noreferrer">
+                            <i class="fab fa-whatsapp me-2"></i>Falar com Especialista
+                        </a>
+                        <a href="{{ url_for('contact') }}" class="btn btn-cta-secondary mb-2">
+                            <i class="fas fa-envelope me-2"></i>Enviar Mensagem
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
