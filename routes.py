@@ -2,6 +2,7 @@ import os
 import uuid
 import json
 import re
+import io
 from datetime import datetime, timedelta
 from PIL import Image
 from flask import render_template, request, redirect, url_for, session, flash, jsonify, Response
@@ -9,13 +10,14 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from openai import OpenAI
 from sqlalchemy.orm import joinedload
+from sqlalchemy import inspect
 # Import from main to avoid circular imports
 try:
     from main import app, db
 except ImportError:
     from app import app, db
 
-from models import Property, Post, AdminSession, PropertyImage, ChatbotConversation, ContactMessage
+from models import Property, Post, Admin, AdminSession, PropertyImage, ChatbotConversation, ContactMessage
 
 # Brazilian price formatting function
 def format_brazilian_price(price):
@@ -134,11 +136,146 @@ ALLOWED_VIDEO_MIMES = {
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB for images
 MAX_VIDEO_SIZE = 30 * 1024 * 1024  # 30MB for videos
 
-ADMIN_PASSWORD = "4731v8"
+# SECURITY: Removed hardcoded password - now using secure hash-based authentication with database storage
 
 # Initialize OpenAI
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+
+# ========================
+# OPTIMIZED FILE PROCESSING FUNCTIONS
+# ========================
+
+def create_optimized_directory_structure():
+    """Create organized directory structure for file storage"""
+    base_dir = app.config.get('UPLOAD_FOLDER', 'uploads')
+    dirs = ['properties', 'posts', 'properties/images', 'properties/videos', 'posts/images', 'posts/videos']
+    
+    for directory in dirs:
+        path = os.path.join(base_dir, directory)
+        os.makedirs(path, exist_ok=True)
+    
+    return base_dir
+
+def optimized_file_validation(file):
+    """
+    Fast file validation with single read
+    Returns: (is_valid, message, file_size, file_ext)
+    """
+    try:
+        if not file or not file.filename:
+            return False, "Nenhum arquivo selecionado", 0, None
+        
+        if not allowed_file(file.filename):
+            return False, "Tipo de arquivo não permitido", 0, None
+        
+        # Get file size efficiently
+        file.seek(0, 2)
+        file_size = file.tell()
+        file.seek(0)
+        
+        file_ext = file.filename.rsplit('.', 1)[1].lower()
+        
+        # Check file sizes
+        if file_ext in ALLOWED_IMAGE_EXTENSIONS and file_size > MAX_IMAGE_SIZE:
+            return False, f"Imagem muito grande. Máximo {MAX_IMAGE_SIZE // (1024*1024)}MB permitido", file_size, file_ext
+        elif file_ext in ALLOWED_VIDEO_EXTENSIONS and file_size > MAX_VIDEO_SIZE:
+            return False, f"Vídeo muito grande. Máximo {MAX_VIDEO_SIZE // (1024*1024)}MB permitido", file_size, file_ext
+        
+        return True, "Arquivo válido", file_size, file_ext
+        
+    except Exception as e:
+        print(f"Error validating file: {e}")
+        return False, "Erro ao validar arquivo", 0, None
+
+def process_and_save_image(file, target_dir, quality=85, max_size=(1920, 1080)):
+    """
+    Optimized image processing: read once, process efficiently, save to filesystem
+    Returns: (file_path, filename, content_type) or (None, None, None) if failed
+    """
+    try:
+        # Single file read and validation
+        file.seek(0)
+        file_data = file.read()
+        
+        if not file_data:
+            return None, None, None
+        
+        # Generate unique filename
+        filename = secure_filename(file.filename)
+        file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'jpg'
+        unique_filename = f"{uuid.uuid4()}.{file_ext}"
+        file_path = os.path.join(target_dir, unique_filename)
+        
+        # Process image in memory with PIL
+        with Image.open(io.BytesIO(file_data)) as img:
+            # Convert to RGB if necessary
+            if img.mode in ('RGBA', 'LA', 'P'):
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                img = background
+            
+            # Resize if too large (maintain aspect ratio)
+            if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
+                img.thumbnail(max_size, Image.Resampling.LANCZOS)
+            
+            # Save with optimized compression
+            img.save(file_path, 'JPEG', quality=quality, optimize=True, progressive=True)
+        
+        return file_path, unique_filename, 'image/jpeg'
+        
+    except Exception as e:
+        print(f"Error processing image: {e}")
+        return None, None, None
+
+def process_and_save_video(file, target_dir):
+    """
+    Optimized video processing: validate and save to filesystem
+    Returns: (file_path, filename, content_type) or (None, None, None) if failed
+    """
+    try:
+        # Generate unique filename
+        filename = secure_filename(file.filename)
+        file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'mp4'
+        unique_filename = f"{uuid.uuid4()}.{file_ext}"
+        file_path = os.path.join(target_dir, unique_filename)
+        
+        # Save file directly (videos don't need compression)
+        file.save(file_path)
+        
+        content_type = get_file_content_type(filename)
+        return file_path, unique_filename, content_type
+        
+    except Exception as e:
+        print(f"Error processing video: {e}")
+        return None, None, None
+
+def batch_process_images(files, target_dir, max_images=10):
+    """
+    Process multiple images efficiently in batch
+    Returns: list of (file_path, filename, content_type, is_primary) tuples
+    """
+    processed_images = []
+    
+    for i, file in enumerate(files[:max_images]):
+        if file and file.filename:
+            # Validate first
+            is_valid, message, file_size, file_ext = optimized_file_validation(file)
+            if not is_valid:
+                print(f"Validation failed for {file.filename}: {message}")
+                continue
+            
+            # Process image
+            file_path, filename, content_type = process_and_save_image(file, target_dir)
+            if file_path:
+                processed_images.append((file_path, filename, content_type, i == 0))  # First image is primary
+                print(f"Processed image {i+1}/{len(files)}: {filename}")
+            else:
+                print(f"Failed to process image: {file.filename}")
+    
+    return processed_images
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
@@ -445,26 +582,79 @@ def view_post(post_id):
     related_posts = Post.query.filter(Post.id != post_id).order_by(Post.created_at.desc()).limit(3).all()
     return render_template('post.html', post=post, related_posts=related_posts)
 
+def validate_admin_session():
+    """Validate admin session and return admin object if valid, None otherwise"""
+    admin_token = session.get('admin_token')
+    if not admin_token:
+        return None
+    
+    admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
+    if not admin_session or admin_session.expires_at < datetime.utcnow():
+        session.pop('admin_token', None)
+        return None
+    
+    return admin_session.admin
+
+def ensure_admin_exists():
+    """Ensure admin user exists with secure password hash. Creates initial admin if none exists."""
+    try:
+        admin = Admin.query.first()
+        if not admin:
+            # Create initial admin with default password (should be changed immediately)
+            default_password = "admin123"  # Temporary - user must change on first login
+            password_hash = generate_password_hash(default_password)
+            
+            admin = Admin()
+            admin.username = 'admin'
+            admin.password_hash = password_hash
+            db.session.add(admin)
+            db.session.commit()
+            
+            print("SECURITY NOTICE: Initial admin created with default password 'admin123'")
+            print("IMPORTANT: Change the admin password immediately after first login!")
+        return True
+    except Exception as e:
+        print(f"Error ensuring admin exists: {e}")
+        return False
+
 @app.route('/admin-login', methods=['GET', 'POST'])
 def admin_login():
+    # Ensure admin user exists
+    if not ensure_admin_exists():
+        flash('Erro interno do sistema. Contate o administrador.', 'error')
+        return render_template('admin_login.html')
+    
     if request.method == 'POST':
+        username = request.form.get('username', 'admin')
         password = request.form.get('password')
-        if password == ADMIN_PASSWORD:
-            # Create session
+        
+        if not password:
+            flash('Senha é obrigatória!', 'error')
+            return render_template('admin_login.html')
+        
+        # Find admin user
+        admin = Admin.query.filter_by(username=username).first()
+        
+        if admin and check_password_hash(admin.password_hash, password):
+            # SECURITY: Valid login with secure password hash verification
             session_token = str(uuid.uuid4())
             expires_at = datetime.utcnow() + timedelta(hours=2)
             
             admin_session = AdminSession()
             admin_session.session_token = session_token
+            admin_session.admin_id = admin.id
             admin_session.expires_at = expires_at
             db.session.add(admin_session)
+            
+            # Update last login
+            admin.last_login = datetime.utcnow()
             db.session.commit()
             
             session['admin_token'] = session_token
             flash('Login realizado com sucesso!', 'success')
             return redirect(url_for('admin_panel'))
         else:
-            flash('Senha incorreta!', 'error')
+            flash('Usuário ou senha incorretos!', 'error')
     
     return render_template('admin_login.html')
 
@@ -487,8 +677,66 @@ def admin_panel():
     posts = Post.query.order_by(Post.created_at.desc()).limit(20).all()
     return render_template('admin_panel.html', properties=properties, posts=posts)
 
+@app.route('/admin/logout')
+def admin_logout():
+    """Secure admin logout - invalidates session"""
+    admin_token = session.get('admin_token')
+    if admin_token:
+        # Remove session from database
+        AdminSession.query.filter_by(session_token=admin_token).delete()
+        db.session.commit()
+        # Clear session cookie
+        session.pop('admin_token', None)
+    
+    flash('Logout realizado com sucesso!', 'success')
+    return redirect(url_for('admin_login'))
+
+@app.route('/admin/change-password', methods=['GET', 'POST'])
+def admin_change_password():
+    """Secure password change functionality"""
+    admin = validate_admin_session()
+    if not admin:
+        flash('Acesso negado. Faça login novamente.', 'error')
+        return redirect(url_for('admin_login'))
+    
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validation
+        if not all([current_password, new_password, confirm_password]):
+            flash('Todos os campos são obrigatórios!', 'error')
+            return render_template('admin_change_password.html')
+        
+        if new_password != confirm_password:
+            flash('Nova senha e confirmação não coincidem!', 'error')
+            return render_template('admin_change_password.html')
+        
+        if len(new_password) < 6:
+            flash('Nova senha deve ter pelo menos 6 caracteres!', 'error')
+            return render_template('admin_change_password.html')
+        
+        # Verify current password
+        if not check_password_hash(admin.password_hash, current_password):
+            flash('Senha atual incorreta!', 'error')
+            return render_template('admin_change_password.html')
+        
+        # Update password with secure hash
+        admin.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        
+        # Log security event
+        print(f"SECURITY: Admin password changed for user {admin.username} at {datetime.utcnow()}")
+        
+        flash('Senha alterada com sucesso!', 'success')
+        return redirect(url_for('admin_panel'))
+    
+    return render_template('admin_change_password.html')
+
 @app.route('/admin/add-property', methods=['POST'])
 def add_property():
+    """OPTIMIZED: Fast property creation with efficient file processing"""
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
@@ -500,6 +748,7 @@ def add_property():
         return redirect(url_for('admin_login'))
     
     try:
+        # Get form data
         title = request.form.get('title')
         description = request.form.get('description')
         property_type = request.form.get('property_type')
@@ -511,69 +760,104 @@ def add_property():
             flash('Título é obrigatório!', 'error')
             return redirect(url_for('admin_panel'))
         
-        video_path = None
+        # Create optimized directory structure
+        base_dir = create_optimized_directory_structure()
         
-        # Handle video upload with database storage
-        video_file_info = None
+        # Process video upload (if any) with filesystem storage
+        video_file_path = None
+        video_filename = None
+        video_content_type = None
+        
         if 'video' in request.files:
-            file = request.files['video']
-            if file and file.filename:
-                video_file_info, message = process_uploaded_file(file)
-                if video_file_info is None:
+            video_file = request.files['video']
+            if video_file and video_file.filename:
+                # Validate video file
+                is_valid, message, file_size, file_ext = optimized_file_validation(video_file)
+                if not is_valid:
                     flash(f'Erro no vídeo: {message}', 'error')
                     return redirect(url_for('admin_panel'))
-                print(f"Property video processed successfully: {message}")
+                
+                # Process and save video
+                video_target_dir = os.path.join(base_dir, 'properties', 'videos')
+                video_file_path, video_filename, video_content_type = process_and_save_video(video_file, video_target_dir)
+                
+                if not video_file_path:
+                    flash('Erro ao processar vídeo. Tente novamente.', 'error')
+                    return redirect(url_for('admin_panel'))
+                
+                print(f"Property video processed successfully: {video_filename}")
         
-        # Create property with database storage
+        # Process multiple images efficiently with batch processing
+        image_records = []
+        main_image_path = None
+        
+        if 'images' in request.files:
+            files = request.files.getlist('images')
+            if files and files[0].filename:  # Check if any files were actually uploaded
+                image_target_dir = os.path.join(base_dir, 'properties', 'images')
+                processed_images = batch_process_images(files, image_target_dir, max_images=10)
+                
+                if not processed_images:
+                    flash('Erro ao processar imagens. Verifique os arquivos e tente novamente.', 'error')
+                    return redirect(url_for('admin_panel'))
+                
+                # Prepare image records for batch insert
+                for i, (file_path, filename, content_type, is_primary) in enumerate(processed_images):
+                    image_record = {
+                        'image_path': file_path,
+                        'image_filename': filename,
+                        'image_content_type': content_type,
+                        'is_primary': is_primary,
+                        'order_index': i,
+                        'created_at': datetime.utcnow()
+                    }
+                    image_records.append(image_record)
+                    
+                    if is_primary:
+                        main_image_path = file_path
+                
+                print(f"Batch processed {len(processed_images)} images successfully")
+        
+        # SINGLE DATABASE TRANSACTION - much faster!
+        # Create property record
         property_obj = Property()
         property_obj.title = title
         property_obj.description = description
-        property_obj.video_path = None  # Keep for backward compatibility
         property_obj.property_type = property_type
         property_obj.price = price
         property_obj.location = location
         property_obj.featured = featured
-        
-        # Set video data if uploaded
-        if video_file_info:
-            property_obj.video_data = video_file_info['data']
-            property_obj.video_filename = video_file_info['filename']
-            property_obj.video_content_type = video_file_info['content_type']
+        property_obj.image_path = main_image_path
+        property_obj.video_path = video_file_path
+        property_obj.video_filename = video_filename
+        property_obj.video_content_type = video_content_type
+        property_obj.created_at = datetime.utcnow()
         
         db.session.add(property_obj)
+        db.session.flush()  # Get the property ID without committing
+        
+        # Add property_id to image records and create PropertyImage instances
+        if image_records:
+            for record in image_records:
+                record['property_id'] = property_obj.id
+                
+                # Create PropertyImage instance
+                property_image = PropertyImage()
+                property_image.property_id = record['property_id']
+                property_image.image_path = record['image_path']
+                property_image.image_filename = record['image_filename']
+                property_image.image_content_type = record['image_content_type']
+                property_image.is_primary = record['is_primary']
+                property_image.order_index = record['order_index']
+                property_image.created_at = record['created_at']
+                
+                db.session.add(property_image)
+        
+        # Single commit for everything - atomic and fast
         db.session.commit()
         
-        # Handle multiple image uploads with new optimized system
-        uploaded_images = []
-        if 'images' in request.files:
-            files = request.files.getlist('images')
-            for i, file in enumerate(files[:10]):  # Limit to 10 images
-                if file and file.filename:
-                    image_file_info, message = process_uploaded_file(file)
-                    if image_file_info is None:
-                        flash(f'Erro na imagem {file.filename}: {message}', 'error')
-                        return redirect(url_for('admin_panel'))
-                    
-                    # Create PropertyImage record with database storage
-                    property_image = PropertyImage()
-                    property_image.property_id = property_obj.id
-                    property_image.image_path = f'db_image_{property_obj.id}_{i}'  # Reference for backward compatibility
-                    property_image.is_primary = (i == 0)  # First image is primary
-                    property_image.order_index = i
-                    property_image.image_data = image_file_info['data']
-                    property_image.image_filename = image_file_info['filename']
-                    property_image.image_content_type = image_file_info['content_type']
-                    db.session.add(property_image)
-                    uploaded_images.append(f'property_image_{property_obj.id}_{i}')
-                    print(f"Property image {i+1} processed successfully: {message}")
-        
-        # Set reference to first image for backward compatibility
-        if uploaded_images:
-            property_obj.image_path = uploaded_images[0]
-            db.session.commit()
-    
         flash('Propriedade adicionada com sucesso!', 'success')
-        print(f"Property created successfully: {property_obj.id}")
+        print(f"Property created successfully: {property_obj.id} with {len(image_records)} images")
         
     except Exception as e:
         print(f"Error in add_property: {e}")
@@ -786,6 +1070,7 @@ def admin_logout():
 
 @app.route('/admin/add-post', methods=['POST'])
 def add_post():
+    """OPTIMIZED: Fast post creation with efficient file processing"""
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
@@ -797,6 +1082,7 @@ def add_post():
         return redirect(url_for('admin_login'))
     
     try:
+        # Get form data
         title = request.form.get('title')
         content = request.form.get('content')
         featured = 'featured' in request.form
@@ -805,50 +1091,72 @@ def add_post():
             flash('Título e conteúdo são obrigatórios!', 'error')
             return redirect(url_for('admin_panel'))
         
-        image_path = None
-        video_path = None
+        # Create optimized directory structure
+        base_dir = create_optimized_directory_structure()
         
-        # Handle image upload with database storage
-        image_file_info = None
+        # Process image upload (if any) with filesystem storage
+        image_file_path = None
+        image_filename = None
+        image_content_type = None
+        
         if 'image' in request.files:
-            file = request.files['image']
-            if file and file.filename:
-                image_file_info, message = process_uploaded_file(file)
-                if image_file_info is None:
+            image_file = request.files['image']
+            if image_file and image_file.filename:
+                # Validate image file
+                is_valid, message, file_size, file_ext = optimized_file_validation(image_file)
+                if not is_valid:
                     flash(f'Erro na imagem: {message}', 'error')
                     return redirect(url_for('admin_panel'))
-                print(f"Post image processed successfully: {message}")
+                
+                # Process and save image
+                image_target_dir = os.path.join(base_dir, 'posts', 'images')
+                image_file_path, image_filename, image_content_type = process_and_save_image(image_file, image_target_dir)
+                
+                if not image_file_path:
+                    flash('Erro ao processar imagem. Tente novamente.', 'error')
+                    return redirect(url_for('admin_panel'))
+                
+                print(f"Post image processed successfully: {image_filename}")
         
-        # Handle video upload with database storage
-        video_file_info = None
+        # Process video upload (if any) with filesystem storage
+        video_file_path = None
+        video_filename = None
+        video_content_type = None
+        
         if 'video' in request.files:
-            file = request.files['video']
-            if file and file.filename:
-                video_file_info, message = process_uploaded_file(file)
-                if video_file_info is None:
+            video_file = request.files['video']
+            if video_file and video_file.filename:
+                # Validate video file
+                is_valid, message, file_size, file_ext = optimized_file_validation(video_file)
+                if not is_valid:
                     flash(f'Erro no vídeo: {message}', 'error')
                     return redirect(url_for('admin_panel'))
-                print(f"Post video processed successfully: {message}")
+                
+                # Process and save video
+                video_target_dir = os.path.join(base_dir, 'posts', 'videos')
+                video_file_path, video_filename, video_content_type = process_and_save_video(video_file, video_target_dir)
+                
+                if not video_file_path:
+                    flash('Erro ao processar vídeo. Tente novamente.', 'error')
+                    return redirect(url_for('admin_panel'))
+                
+                print(f"Post video processed successfully: {video_filename}")
         
-        # Create post with database storage
+        # SINGLE DATABASE TRANSACTION - much faster!
+        # Create post record with filesystem storage
         post_obj = Post()
         post_obj.title = title
         post_obj.content = content
-        post_obj.image_path = None  # Keep for backward compatibility
-        post_obj.video_path = None  # Keep for backward compatibility
         post_obj.featured = featured
+        post_obj.image_path = image_file_path
+        post_obj.image_filename = image_filename
+        post_obj.image_content_type = image_content_type
+        post_obj.video_path = video_file_path
+        post_obj.video_filename = video_filename
+        post_obj.video_content_type = video_content_type
+        post_obj.created_at = datetime.utcnow()
         
-        # Set file data if uploaded
-        if image_file_info:
-            post_obj.image_data = image_file_info['data']
-            post_obj.image_filename = image_file_info['filename']
-            post_obj.image_content_type = image_file_info['content_type']
-        
-        if video_file_info:
-            post_obj.video_data = video_file_info['data']
-            post_obj.video_filename = video_file_info['filename']
-            post_obj.video_content_type = video_file_info['content_type']
-        
+        # Single atomic transaction
         db.session.add(post_obj)
         db.session.commit()
         

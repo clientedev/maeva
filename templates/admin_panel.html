@@ -197,9 +197,16 @@
                             </div>
                             
                             <div class="text-center">
-                                <button type="submit" class="btn btn-luxury-gold btn-lg">
+                                <button type="submit" class="btn btn-luxury-gold btn-lg" id="submit-property-btn">
                                     <i class="fas fa-save me-2"></i>Salvar Propriedade
                                 </button>
+                                <!-- Loading state -->
+                                <div id="property-loading" class="loading-state" style="display: none;">
+                                    <div class="spinner-border text-warning me-2" role="status">
+                                        <span class="visually-hidden">Carregando...</span>
+                                    </div>
+                                    <span class="text-warning">Processando propriedade... Isso pode levar alguns segundos.</span>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -308,9 +315,16 @@
                             </div>
                             
                             <div class="text-center">
-                                <button type="submit" class="btn btn-luxury-gold btn-lg">
+                                <button type="submit" class="btn btn-luxury-gold btn-lg" id="submit-post-btn">
                                     <i class="fas fa-save me-2"></i>Salvar Post
                                 </button>
+                                <!-- Loading state -->
+                                <div id="post-loading" class="loading-state" style="display: none;">
+                                    <div class="spinner-border text-warning me-2" role="status">
+                                        <span class="visually-hidden">Carregando...</span>
+                                    </div>
+                                    <span class="text-warning">Processando post... Isso pode levar alguns segundos.</span>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -429,9 +443,16 @@
                             </div>
                             
                             <div class="text-center">
-                                <button type="submit" class="btn btn-luxury-gold btn-lg">
+                                <button type="submit" class="btn btn-luxury-gold btn-lg" id="submit-edit-property-btn">
                                     <i class="fas fa-save me-2"></i>Atualizar Propriedade
                                 </button>
+                                <!-- Loading state -->
+                                <div id="edit-property-loading" class="loading-state" style="display: none;">
+                                    <div class="spinner-border text-warning me-2" role="status">
+                                        <span class="visually-hidden">Carregando...</span>
+                                    </div>
+                                    <span class="text-warning">Atualizando propriedade... Isso pode levar alguns segundos.</span>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -504,9 +525,16 @@
                             </div>
                             
                             <div class="text-center">
-                                <button type="submit" class="btn btn-luxury-gold btn-lg">
+                                <button type="submit" class="btn btn-luxury-gold btn-lg" id="submit-edit-post-btn">
                                     <i class="fas fa-save me-2"></i>Atualizar Post
                                 </button>
+                                <!-- Loading state -->
+                                <div id="edit-post-loading" class="loading-state" style="display: none;">
+                                    <div class="spinner-border text-warning me-2" role="status">
+                                        <span class="visually-hidden">Carregando...</span>
+                                    </div>
+                                    <span class="text-warning">Atualizando post... Isso pode levar alguns segundos.</span>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -682,5 +710,157 @@ function setPriceValue(inputId, value) {
         input.value = formatPriceBrazilian(value.toString());
     }
 }
+
+// ========================
+// OPTIMIZED LOADING STATES FOR FORM SUBMISSIONS
+// ========================
+
+function showLoadingState(buttonId, loadingId) {
+    const button = document.getElementById(buttonId);
+    const loading = document.getElementById(loadingId);
+    
+    if (button && loading) {
+        button.style.display = 'none';
+        loading.style.display = 'block';
+        
+        // Disable form to prevent multiple submissions
+        const form = button.closest('form');
+        if (form) {
+            const inputs = form.querySelectorAll('input, select, textarea, button');
+            inputs.forEach(input => input.disabled = true);
+        }
+    }
+}
+
+function hideLoadingState(buttonId, loadingId) {
+    const button = document.getElementById(buttonId);
+    const loading = document.getElementById(loadingId);
+    
+    if (button && loading) {
+        button.style.display = 'inline-block';
+        loading.style.display = 'none';
+        
+        // Re-enable form
+        const form = button.closest('form');
+        if (form) {
+            const inputs = form.querySelectorAll('input, select, textarea, button');
+            inputs.forEach(input => input.disabled = false);
+        }
+    }
+}
+
+// Add form submission handlers for loading states
+document.addEventListener('DOMContentLoaded', function() {
+    // Add Property Form
+    const addPropertyForm = document.querySelector('form[action*="add_property"]');
+    if (addPropertyForm) {
+        addPropertyForm.addEventListener('submit', function(e) {
+            // Show loading state immediately
+            showLoadingState('submit-property-btn', 'property-loading');
+            
+            // Additional validation for large files
+            const imageFiles = document.getElementById('images');
+            const videoFile = document.getElementById('video');
+            
+            let hasLargeFiles = false;
+            if (imageFiles && imageFiles.files.length > 0) {
+                for (let file of imageFiles.files) {
+                    if (file.size > 5 * 1024 * 1024) { // 5MB
+                        hasLargeFiles = true;
+                        break;
+                    }
+                }
+            }
+            if (videoFile && videoFile.files.length > 0 && videoFile.files[0].size > 20 * 1024 * 1024) { // 20MB
+                hasLargeFiles = true;
+            }
+            
+            if (hasLargeFiles) {
+                const loadingDiv = document.getElementById('property-loading');
+                if (loadingDiv) {
+                    loadingDiv.innerHTML = `
+                        <div class="spinner-border text-warning me-2" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <span class="text-warning">Processando arquivos grandes... Isso pode levar até 30 segundos.</span>
+                    `;
+                }
+            }
+        });
+    }
+    
+    // Add Post Form
+    const addPostForm = document.querySelector('form[action*="add_post"]');
+    if (addPostForm) {
+        addPostForm.addEventListener('submit', function(e) {
+            showLoadingState('submit-post-btn', 'post-loading');
+        });
+    }
+    
+    // Edit Property Form
+    const editPropertyForm = document.querySelector('form[action*="update_property"]');
+    if (editPropertyForm) {
+        editPropertyForm.addEventListener('submit', function(e) {
+            showLoadingState('submit-edit-property-btn', 'edit-property-loading');
+        });
+    }
+    
+    // Edit Post Form
+    const editPostForm = document.querySelector('form[action*="update_post"]');
+    if (editPostForm) {
+        editPostForm.addEventListener('submit', function(e) {
+            showLoadingState('submit-edit-post-btn', 'edit-post-loading');
+        });
+    }
+    
+    // File upload progress feedback
+    function setupFileUploadFeedback(inputId, maxSize, fileType) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        
+        input.addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (files.length === 0) return;
+            
+            let totalSize = 0;
+            let fileCount = files.length;
+            
+            for (let file of files) {
+                totalSize += file.size;
+            }
+            
+            // Show feedback based on file size
+            let feedbackMsg = '';
+            if (totalSize > maxSize) {
+                feedbackMsg = `⚠️ Arquivos muito grandes (${(totalSize / (1024*1024)).toFixed(1)}MB). Upload pode ser lento.`;
+            } else if (fileCount > 5) {
+                feedbackMsg = `📁 ${fileCount} arquivos selecionados. Upload pode levar alguns segundos.`;
+            } else if (totalSize > 2 * 1024 * 1024) {
+                feedbackMsg = `📄 Arquivos selecionados (${(totalSize / (1024*1024)).toFixed(1)}MB).`;
+            }
+            
+            if (feedbackMsg) {
+                // Show temporary feedback
+                let feedback = input.parentNode.querySelector('.file-feedback');
+                if (!feedback) {
+                    feedback = document.createElement('div');
+                    feedback.className = 'file-feedback text-warning mt-1';
+                    input.parentNode.appendChild(feedback);
+                }
+                feedback.textContent = feedbackMsg;
+                
+                // Hide feedback after 5 seconds
+                setTimeout(() => {
+                    if (feedback) feedback.remove();
+                }, 5000);
+            }
+        });
+    }
+    
+    // Setup file upload feedback
+    setupFileUploadFeedback('images', 50 * 1024 * 1024, 'image'); // 50MB for multiple images
+    setupFileUploadFeedback('video', 30 * 1024 * 1024, 'video');   // 30MB for video
+    setupFileUploadFeedback('image', 10 * 1024 * 1024, 'image');   // 10MB for single image
+});
 </script>
 {% endblock %}

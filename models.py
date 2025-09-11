@@ -25,14 +25,13 @@ class Property(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     featured = db.Column(db.Boolean, default=False)
     
-    # Database storage columns
-    video_data = db.Column(db.LargeBinary)
+    # Optimized file storage - removed LargeBinary for performance
     video_filename = db.Column(db.String(255))
     video_content_type = db.Column(db.String(100))
     
     def has_video_data(self):
-        """Check if this instance has video data stored in database"""
-        return self.video_data is not None
+        """Check if this instance has video file available"""
+        return (self.video_path and os.path.exists(self.video_path)) or self.video_filename
     
     def has_video_file(self):
         """Check if this instance has video file stored locally"""
@@ -49,14 +48,13 @@ class PropertyImage(db.Model):
     order_index = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Database storage columns
-    image_data = db.Column(db.LargeBinary)
+    # Optimized file storage - removed LargeBinary for performance
     image_filename = db.Column(db.String(255))
     image_content_type = db.Column(db.String(100))
     
     def has_image_data(self):
-        """Check if this instance has image data stored in database"""
-        return self.image_data is not None
+        """Check if this instance has image file available"""
+        return (self.image_path and os.path.exists(self.image_path)) or self.image_filename
     
     def has_image_file(self):
         """Check if this instance has image file stored locally (backward compatibility)"""
@@ -87,21 +85,19 @@ class Post(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     featured = db.Column(db.Boolean, default=False)
     
-    # Database storage columns
-    image_data = db.Column(db.LargeBinary)
+    # Optimized file storage - removed LargeBinary for performance
     image_filename = db.Column(db.String(255))
     image_content_type = db.Column(db.String(100))
-    video_data = db.Column(db.LargeBinary)
     video_filename = db.Column(db.String(255))
     video_content_type = db.Column(db.String(100))
     
     def has_image_data(self):
-        """Check if this instance has image data stored in database"""
-        return self.image_data is not None
+        """Check if this instance has image file available"""
+        return (self.image_path and os.path.exists(self.image_path)) or self.image_filename
     
     def has_video_data(self):
-        """Check if this instance has video data stored in database"""
-        return self.video_data is not None
+        """Check if this instance has video file available"""
+        return (self.video_path and os.path.exists(self.video_path)) or self.video_filename
     
     def has_image_file(self):
         """Check if this instance has image file stored locally (backward compatibility)"""
@@ -128,8 +124,21 @@ class ContactMessage(db.Model):
     def __repr__(self):
         return f'<ContactMessage {self.name}>'
 
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False, default='admin')
+    password_hash = db.Column(db.String(256), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime)
+    
+    def __repr__(self):
+        return f'<Admin {self.username}>'
+
 class AdminSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_token = db.Column(db.String(100), unique=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('admin.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     expires_at = db.Column(db.DateTime)
+    
+    admin = db.relationship('Admin', backref=db.backref('sessions', lazy=True))
