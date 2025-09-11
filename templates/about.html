@@ -111,36 +111,56 @@
 <!-- Team Section -->
 <section class="py-5">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8 text-center">
-                <h2 class="luxury-heading mb-4">Rose Ventura</h2>
-                <p class="text-white mb-4">Especialista em Investimentos Imobiliários</p>
-                
-                <div class="team-contact mb-4">
-                    <div class="contact-item mb-3">
-                        <i class="fab fa-whatsapp luxury-text-gold me-3"></i>
-                        <span class="text-white">(11) 98755-7913</span>
-                    </div>
-                    <div class="contact-item mb-3">
-                        <i class="fab fa-instagram luxury-text-gold me-3"></i>
-                        <span class="text-white">@Roseaventura</span>
-                    </div>
-                    <div class="contact-item mb-3">
-                        <i class="fab fa-linkedin luxury-text-gold me-3"></i>
-                        <span class="text-white">Rose Ventura</span>
-                    </div>
+        <div class="row align-items-center">
+            <div class="col-lg-5 mb-4">
+                <div class="team-photo text-center">
+                    <img src="{{ url_for('static', filename='images/rose-ventura.png') }}" 
+                         alt="Rose Ventura - Especialista em Investimentos Imobiliários" 
+                         class="img-fluid rounded-3 luxury-image" 
+                         style="max-height: 400px; object-fit: cover; border: 3px solid #D4AF37; box-shadow: 0 8px 32px rgba(212, 175, 55, 0.3);">
                 </div>
-                
-                <div class="social-connect">
-                    <a href="https://wa.me/5511987557913" class="btn btn-luxury-gold me-2" target="_blank">
-                        <i class="fab fa-whatsapp me-1"></i> Contatar
-                    </a>
-                    <a href="https://instagram.com/Roseaventura" class="btn btn-luxury-outline me-2" target="_blank">
-                        <i class="fab fa-instagram me-1"></i> Seguir
-                    </a>
-                    <a href="https://linkedin.com/in/rose-ventura" class="btn btn-luxury-outline" target="_blank">
-                        <i class="fab fa-linkedin me-1"></i> Conectar
-                    </a>
+            </div>
+            
+            <div class="col-lg-7">
+                <div class="team-info">
+                    <h2 class="luxury-heading mb-3">Rose Ventura</h2>
+                    <p class="text-white mb-4 fs-5">Especialista em Investimentos Imobiliários</p>
+                    
+                    <div class="team-contact mb-4">
+                        <div class="contact-item mb-3 d-flex align-items-center">
+                            <i class="fab fa-whatsapp luxury-text-gold me-3 fs-4"></i>
+                            <div>
+                                <span class="text-white fs-5">(11) 98755-7913</span>
+                                <small class="d-block text-white-50">WhatsApp Comercial</small>
+                            </div>
+                        </div>
+                        <div class="contact-item mb-3 d-flex align-items-center">
+                            <i class="fab fa-instagram luxury-text-gold me-3 fs-4"></i>
+                            <div>
+                                <span class="text-white fs-5">@Roseaventura</span>
+                                <small class="d-block text-white-50">Instagram</small>
+                            </div>
+                        </div>
+                        <div class="contact-item mb-4 d-flex align-items-center">
+                            <i class="fab fa-linkedin luxury-text-gold me-3 fs-4"></i>
+                            <div>
+                                <span class="text-white fs-5">Rose Ventura</span>
+                                <small class="d-block text-white-50">LinkedIn</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="social-connect">
+                        <a href="https://wa.me/5511987557913" class="btn btn-luxury-gold me-2 mb-2" target="_blank">
+                            <i class="fab fa-whatsapp me-1"></i> Contatar no WhatsApp
+                        </a>
+                        <a href="https://instagram.com/Roseaventura" class="btn btn-luxury-outline me-2 mb-2" target="_blank">
+                            <i class="fab fa-instagram me-1"></i> Seguir
+                        </a>
+                        <a href="https://linkedin.com/in/rose-ventura" class="btn btn-luxury-outline mb-2" target="_blank">
+                            <i class="fab fa-linkedin me-1"></i> Conectar
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
