@@ -82,7 +82,7 @@
                                     {% endif %}
                                     
                                     {% if property.price %}
-                                    <p class="property-meta"><strong>Preço:</strong> {{ property.price }}</p>
+                                    <p class="property-meta"><strong>Preço:</strong> {{ property.price | format_price }}</p>
                                     {% endif %}
                                     
                                     <p class="property-meta">
@@ -598,6 +598,89 @@ if (videoInput) {
             console.log('Video selected:', file.name);
         }
     });
+}
+
+// Brazilian Price Input Mask Functionality
+function formatPriceBrazilian(value) {
+    // Remove all non-numeric characters
+    let numericValue = value.replace(/\D/g, '');
+    
+    if (numericValue === '') return '';
+    
+    // Convert to number and format
+    let num = parseInt(numericValue);
+    
+    // Format with Brazilian currency standards
+    let formatted = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(num);
+    
+    return formatted;
+}
+
+function cleanPriceValue(value) {
+    // Extract only numeric value for form submission
+    return value.replace(/\D/g, '');
+}
+
+// Apply price formatting to price input fields
+function setupPriceInputMask(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    // Format on input
+    input.addEventListener('input', function(e) {
+        const cursorPosition = e.target.selectionStart;
+        const oldValue = e.target.value;
+        const newValue = formatPriceBrazilian(oldValue);
+        
+        e.target.value = newValue;
+        
+        // Try to maintain cursor position
+        const newCursorPosition = cursorPosition + (newValue.length - oldValue.length);
+        e.target.setSelectionRange(newCursorPosition, newCursorPosition);
+    });
+    
+    // Format on blur (focus out)
+    input.addEventListener('blur', function(e) {
+        e.target.value = formatPriceBrazilian(e.target.value);
+    });
+    
+    // Clean value before form submission
+    const form = input.closest('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Store original value, clean it for submission
+            const cleanValue = cleanPriceValue(input.value);
+            input.value = cleanValue;
+        });
+    }
+}
+
+// Initialize price input masks when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setupPriceInputMask('price');        // Add property form
+    setupPriceInputMask('edit-price');   // Edit property form
+    
+    // Format existing values on edit form
+    const editPriceInput = document.getElementById('edit-price');
+    if (editPriceInput && editPriceInput.value) {
+        // Only format if it's not already formatted (doesn't contain R$)
+        if (!editPriceInput.value.includes('R$')) {
+            editPriceInput.value = formatPriceBrazilian(editPriceInput.value);
+        }
+    }
+});
+
+// Helper function to set price value programmatically (for admin use)
+function setPriceValue(inputId, value) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.value = formatPriceBrazilian(value.toString());
+    }
 }
 </script>
 {% endblock %}

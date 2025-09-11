@@ -191,7 +191,7 @@
                         {% endif %}
                         
                         {% if property.price %}
-                        <p class="property-price">{{ property.price }}</p>
+                        <p class="property-price">{{ property.price | format_price }}</p>
                         {% endif %}
                         
                         {% if property.description %}

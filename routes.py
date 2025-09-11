@@ -1,6 +1,7 @@
 import os
 import uuid
 import json
+import re
 from datetime import datetime, timedelta
 from PIL import Image
 from flask import render_template, request, redirect, url_for, session, flash, jsonify, Response
@@ -15,6 +16,97 @@ except ImportError:
     from app import app, db
 
 from models import Property, Post, AdminSession, PropertyImage, ChatbotConversation, ContactMessage
+
+# Brazilian price formatting function
+def format_brazilian_price(price):
+    """
+    Format price to Brazilian currency format (R$ 1.500.000,00)
+    Handles both numeric values and string inputs
+    """
+    if not price:
+        return ""
+    
+    try:
+        # Convert string to number if needed
+        if isinstance(price, str):
+            # Remove currency symbols and spaces first
+            price_clean = re.sub(r'[R$\s]', '', price.strip())
+            if not price_clean:
+                return ""
+            
+            # Parse Brazilian format correctly
+            if ',' in price_clean and '.' in price_clean:
+                # Format like "1.500.000,50" - dots are thousands, comma is decimal
+                parts = price_clean.split(',')
+                integer_part = parts[0].replace('.', '')  # Remove thousand separators
+                decimal_part = parts[1] if len(parts) > 1 else '00'
+                price_num = float(f"{integer_part}.{decimal_part}")
+            elif ',' in price_clean:
+                # Format like "1500000,50" - comma is decimal
+                parts = price_clean.split(',')
+                integer_part = parts[0]
+                decimal_part = parts[1] if len(parts) > 1 else '00'
+                price_num = float(f"{integer_part}.{decimal_part}")
+            elif '.' in price_clean:
+                # Could be "1500000.50" (decimal) or "1.500.000" (thousands)
+                dot_count = price_clean.count('.')
+                if dot_count == 1:
+                    # Check if it's likely a decimal vs thousands separator
+                    parts = price_clean.split('.')
+                    decimal_part = parts[1]
+                    
+                    # In Brazilian format, thousands separator creates groups of 3 digits
+                    # So "2.500" should be treated as thousands, not "2.50"
+                    if len(decimal_part) == 3:
+                        # Could be thousands separator (like "2.500") or decimal (like "1000.123")
+                        # If the whole number is <= 6 digits, likely thousands separator
+                        if len(price_clean.replace('.', '')) <= 6:
+                            # Treat as thousands separator
+                            price_num = float(price_clean.replace('.', ''))
+                        else:
+                            # Treat as decimal for very large numbers
+                            price_num = float(price_clean)
+                    elif len(decimal_part) <= 2:
+                        # 1 or 2 digits after dot, treat as decimal
+                        price_num = float(price_clean)
+                    else:
+                        # More than 3 digits, treat as thousands separator
+                        price_num = float(price_clean.replace('.', ''))
+                else:
+                    # Multiple dots, treat as thousands separators
+                    price_num = float(price_clean.replace('.', ''))
+            else:
+                # Plain number
+                price_num = float(price_clean)
+        else:
+            price_num = float(price)
+        
+        # Use Decimal for precision
+        from decimal import Decimal, ROUND_HALF_UP
+        price_decimal = Decimal(str(price_num)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
+        # Format with Brazilian standards
+        price_int = int(price_decimal)
+        price_cents = int((price_decimal - price_int) * 100)
+        
+        # Format integer part with thousands separator (dots)
+        price_str = f"{price_int:,}".replace(',', '.')
+        
+        # Add decimal part (always show .00 if no decimals)
+        formatted_price = f"R$ {price_str},{price_cents:02d}"
+        
+        return formatted_price
+        
+    except (ValueError, TypeError) as e:
+        print(f"Error formatting price '{price}': {e}")
+        # If conversion fails, return original or empty
+        return str(price) if price else ""
+
+# Register the filter with Jinja2
+@app.template_filter('format_price')
+def format_price_filter(price):
+    """Jinja2 filter for Brazilian price formatting"""
+    return format_brazilian_price(price)
 
 # Try to import magic with fallback
 try:

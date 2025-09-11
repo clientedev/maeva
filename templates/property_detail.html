@@ -139,7 +139,7 @@
                         {% if property.price %}
                         <div class="detail-item price-item">
                             <i class="fas fa-tag luxury-text-gold me-2"></i>
-                            <span class="property-price">{{ property.price }}</span>
+                            <span class="property-price">{{ property.price | format_price }}</span>
                         </div>
                         {% endif %}
                         
