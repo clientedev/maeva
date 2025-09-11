@@ -13,7 +13,7 @@ try:
 except ImportError:
     from app import app, db
 
-from models import Property, Post, AdminSession, PropertyImage, ChatbotConversation
+from models import Property, Post, AdminSession, PropertyImage, ChatbotConversation, ContactMessage
 
 # Try to import magic with fallback
 try:
@@ -262,6 +262,59 @@ def gallery():
 @app.route('/contato')
 def contact():
     return render_template('contact.html')
+
+@app.route('/contact/submit', methods=['POST'])
+def contact_submit():
+    try:
+        # Get form data
+        name = request.form.get('name', '').strip()
+        phone = request.form.get('phone', '').strip()
+        email = request.form.get('email', '').strip()
+        interest = request.form.get('interest', '').strip()
+        message = request.form.get('message', '').strip()
+        
+        # Validate required fields
+        if not name:
+            flash('Nome é obrigatório!', 'error')
+            return redirect(url_for('contact'))
+        
+        if not phone:
+            flash('Telefone é obrigatório!', 'error')
+            return redirect(url_for('contact'))
+        
+        if not message:
+            flash('Mensagem é obrigatória!', 'error')
+            return redirect(url_for('contact'))
+        
+        # Validate email format if provided
+        if email:
+            import re
+            email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_regex, email):
+                flash('Email inválido!', 'error')
+                return redirect(url_for('contact'))
+        
+        # Create contact message
+        contact_message = ContactMessage()
+        contact_message.name = name
+        contact_message.phone = phone
+        contact_message.email = email if email else None
+        contact_message.interest = interest if interest else None
+        contact_message.message = message
+        
+        # Save to database
+        db.session.add(contact_message)
+        db.session.commit()
+        
+        flash('Mensagem enviada com sucesso! Entraremos em contato em breve.', 'success')
+        print(f"Contact message saved from {name} ({phone})")
+        
+        return redirect(url_for('contact'))
+        
+    except Exception as e:
+        print(f"Error saving contact message: {e}")
+        flash('Erro ao enviar mensagem. Tente novamente ou entre em contato pelo WhatsApp.', 'error')
+        return redirect(url_for('contact'))
 
 @app.route('/posts')
 def posts():
@@ -928,6 +981,54 @@ def admin_conversations():
     conversations = ChatbotConversation.query.order_by(ChatbotConversation.created_at.desc()).all()
     
     return render_template('admin_conversations.html', conversations=conversations)
+
+@app.route('/admin/contact-messages')
+def admin_contact_messages():
+    # Check admin authentication
+    admin_token = session.get('admin_token')
+    if not admin_token:
+        return redirect(url_for('admin_login'))
+    
+    admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
+    if not admin_session or admin_session.expires_at < datetime.utcnow():
+        session.pop('admin_token', None)
+        return redirect(url_for('admin_login'))
+    
+    # Get contact messages with pagination for better performance
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    contact_messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False)
+    
+    # Count unread messages
+    unread_count = ContactMessage.query.filter_by(is_read=False).count()
+    
+    return render_template('admin_contact_messages.html', 
+                         contact_messages=contact_messages, 
+                         unread_count=unread_count)
+
+@app.route('/admin/contact-messages/mark-read/<int:message_id>')
+def mark_contact_message_read(message_id):
+    # Check admin authentication
+    admin_token = session.get('admin_token')
+    if not admin_token:
+        return redirect(url_for('admin_login'))
+    
+    admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
+    if not admin_session or admin_session.expires_at < datetime.utcnow():
+        session.pop('admin_token', None)
+        return redirect(url_for('admin_login'))
+    
+    try:
+        message = ContactMessage.query.get_or_404(message_id)
+        message.is_read = True
+        db.session.commit()
+        flash('Mensagem marcada como lida!', 'success')
+    except Exception as e:
+        print(f"Error marking message as read: {e}")
+        flash('Erro ao marcar mensagem como lida.', 'error')
+    
+    return redirect(url_for('admin_contact_messages'))
 
 @app.errorhandler(404)
 def page_not_found(e):

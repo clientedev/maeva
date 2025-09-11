@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}Mensagens de Contato - Admin{% endblock %}
+
+{% block content %}
+<section class="admin-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="section-header mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="luxury-heading">Mensagens de Contato</h1>
+                            {% if unread_count > 0 %}
+                            <span class="badge bg-danger ms-2">{{ unread_count }} não lidas</span>
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('admin_panel') }}" class="btn btn-luxury-outline">
+                            <i class="fas fa-arrow-left me-1"></i>Voltar ao Admin
+                        </a>
+                    </div>
+                </div>
+                
+                {% if contact_messages.items %}
+                <div class="row">
+                    {% for message in contact_messages.items %}
+                    <div class="col-lg-6 col-xl-4 mb-4">
+                        <div class="contact-message-card {% if not message.is_read %}unread{% endif %}">
+                            <div class="message-header">
+                                <div class="user-info">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ message.name }}</h6>
+                                        <small class="text-muted">{{ message.phone }}</small>
+                                        {% if message.email %}
+                                        <br><small class="text-muted">{{ message.email }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="message-meta">
+                                    <small class="message-time">
+                                        {{ message.created_at.strftime('%d/%m/%Y %H:%M') }}
+                                    </small>
+                                    {% if not message.is_read %}
+                                    <div class="unread-indicator">
+                                        <i class="fas fa-circle"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="message-body">
+                                {% if message.interest %}
+                                <div class="message-interest">
+                                    <strong>Interesse:</strong> 
+                                    <span class="interest-badge">
+                                        {% if message.interest == 'compra' %}
+                                            Compra de Imóvel
+                                        {% elif message.interest == 'investimento' %}
+                                            Investimento
+                                        {% elif message.interest == 'consultoria' %}
+                                            Consultoria
+                                        {% else %}
+                                            {{ message.interest }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="message-content">
+                                    <div class="message-label">
+                                        <i class="fas fa-comment me-1"></i>Mensagem:
+                                    </div>
+                                    <p>{{ message.message }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="message-actions">
+                                {% if not message.is_read %}
+                                <a href="{{ url_for('mark_contact_message_read', message_id=message.id) }}" 
+                                   class="btn btn-luxury-outline btn-sm">
+                                    <i class="fas fa-check me-1"></i>Marcar como Lida
+                                </a>
+                                {% endif %}
+                                
+                                <a href="https://wa.me/55{{ message.phone.replace('(', '').replace(')', '').replace('-', '').replace(' ', '') }}" 
+                                   class="btn btn-luxury-gold btn-sm" target="_blank">
+                                    <i class="fab fa-whatsapp me-1"></i>Contatar
+                                </a>
+                                
+                                {% if message.email %}
+                                <a href="mailto:{{ message.email }}" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if contact_messages.pages > 1 %}
+                <nav aria-label="Contact messages pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if contact_messages.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link luxury-page-link" href="{{ url_for('admin_contact_messages', page=contact_messages.prev_num) }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in contact_messages.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != contact_messages.page %}
+                                <li class="page-item">
+                                    <a class="page-link luxury-page-link" href="{{ url_for('admin_contact_messages', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                                {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link luxury-page-link-active">{{ page_num }}</span>
+                                </li>
+                                {% endif %}
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if contact_messages.has_next %}
+                        <li class="page-item">
+                            <a class="page-link luxury-page-link" href="{{ url_for('admin_contact_messages', page=contact_messages.next_num) }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <div class="empty-state text-center py-5">
+                    <i class="fas fa-envelope luxury-text-gold" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3">Nenhuma mensagem ainda</h3>
+                    <p class="text-white-50">As mensagens de contato dos visitantes aparecerão aqui.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.contact-message-card {
+    background: var(--luxury-dark);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.contact-message-card.unread {
+    border-color: var(--luxury-gold);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+.contact-message-card:hover {
+    border-color: var(--luxury-gold);
+    transform: translateY(-3px);
+}
+
+.message-header {
+    padding: 1rem;
+    background: var(--luxury-black);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.user-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    background: var(--luxury-gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.user-avatar i {
+    color: var(--luxury-black);
+}
+
+.message-header h6 {
+    color: var(--luxury-gold);
+}
+
+.message-meta {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.message-time {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.unread-indicator {
+    color: #dc3545;
+    font-size: 0.8rem;
+}
+
+.message-body {
+    padding: 1rem;
+}
+
+.message-interest {
+    margin-bottom: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.interest-badge {
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--luxury-gold);
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.message-content {
+    margin-bottom: 1rem;
+}
+
+.message-label {
+    font-size: 0.8rem;
+    color: var(--luxury-gold);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.message-content p {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.75rem;
+    border-radius: 10px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+}
+
+.message-actions {
+    padding: 1rem;
+    border-top: 1px solid rgba(212, 175, 55, 0.2);
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.message-actions .btn {
+    font-size: 0.85rem;
+}
+
+.empty-state {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Pagination Styles */
+.luxury-page-link {
+    background: var(--luxury-dark);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    color: var(--luxury-gold);
+}
+
+.luxury-page-link:hover {
+    background: var(--luxury-gold);
+    border-color: var(--luxury-gold);
+    color: var(--luxury-black);
+}
+
+.luxury-page-link-active {
+    background: var(--luxury-gold) !important;
+    border-color: var(--luxury-gold) !important;
+    color: var(--luxury-black) !important;
+}
+
+.page-item.disabled .page-link {
+    background: var(--luxury-dark);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.3);
+}
+</style>
+{% endblock %}
