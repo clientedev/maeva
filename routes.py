@@ -713,17 +713,18 @@ def admin_change_password():
             flash('Nova senha e confirmação não coincidem!', 'error')
             return render_template('admin_change_password.html')
         
-        if len(new_password) < 6:
+        if new_password and len(new_password) < 6:
             flash('Nova senha deve ter pelo menos 6 caracteres!', 'error')
             return render_template('admin_change_password.html')
         
         # Verify current password
-        if not check_password_hash(admin.password_hash, current_password):
+        if not current_password or not admin.password_hash or not check_password_hash(admin.password_hash, current_password):
             flash('Senha atual incorreta!', 'error')
             return render_template('admin_change_password.html')
         
         # Update password with secure hash
-        admin.password_hash = generate_password_hash(new_password)
+        if new_password:
+            admin.password_hash = generate_password_hash(new_password)
         db.session.commit()
         
         # Log security event
@@ -1057,16 +1058,7 @@ def serve_post_video(post_id):
     
     return "Video not found", 404
 
-@app.route('/admin/logout')
-def admin_logout():
-    admin_token = session.get('admin_token')
-    if admin_token:
-        AdminSession.query.filter_by(session_token=admin_token).delete()
-        db.session.commit()
-        session.pop('admin_token', None)
-    
-    flash('Logout realizado com sucesso!', 'success')
-    return redirect(url_for('index'))
+# Duplicate admin_logout function removed - using the first one
 
 @app.route('/admin/add-post', methods=['POST'])
 def add_post():
