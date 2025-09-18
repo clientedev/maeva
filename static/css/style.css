@@ -558,7 +558,17 @@ h1, h2, h3, h4, h5, h6 {
     
     .founder-image {
         max-width: 280px;
-        height: 320px;
+        height: 350px;
+        object-fit: contain;
+        object-position: center;
+        background: transparent;
+    }
+    
+    .founder-photo-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
     }
     
     .contact-grid {
@@ -750,6 +760,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero-buttons {
     animation: fadeInUp 1s ease 0.4s both;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .hero-scroll-indicator {
@@ -1603,10 +1617,17 @@ h1, h2, h3, h4, h5, h6 {
         text-align: center;
     }
     
+    .hero-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    
     .hero-buttons .btn {
-        display: block;
-        margin: 0.5rem auto;
-        width: 200px;
+        width: 250px;
+        max-width: 90%;
+        margin: 0;
     }
     
     .cta-buttons .btn {
