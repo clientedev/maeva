@@ -42,7 +42,7 @@ Preferred communication style: Simple, everyday language.
 - **Admin Access**: Simple password-based authentication system without user registration
 - **Session Management**: Custom AdminSession model with token-based session tracking
 - **Session Expiration**: 2-hour expiration window for administrative sessions
-- **Security**: Hard-coded admin password (4731v8) with session token generation using UUID4
+- **Security**: Admin password authentication with secure password hashing and session token generation using UUID4
 
 ### File Management System
 - **Upload Strategy**: PostgreSQL database storage for all uploaded files with binary data storage
