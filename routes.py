@@ -1461,3 +1461,30 @@ def internal_server_error(e):
 def service_unavailable(e):
     return "Service temporarily unavailable", 503
 
+
+
+# Railway specific healthcheck
+@app.route('/railway-health')
+def railway_health():
+    """Healthcheck específico para Railway com timeout otimizado"""
+    try:
+        # Test database connection with timeout
+        from sqlalchemy import text
+        result = db.session.execute(text('SELECT 1'))
+        
+        # Check if admin exists
+        admin_exists = Admin.query.first() is not None
+        
+        return {
+            'status': 'healthy',
+            'database': 'connected',
+            'admin_configured': admin_exists,
+            'timestamp': datetime.utcnow().isoformat()
+        }, 200
+        
+    except Exception as e:
+        return {
+            'status': 'unhealthy', 
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat()
+        }, 503

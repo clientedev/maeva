@@ -1,1 +1,2 @@
-web: python migrate_db.py; gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 300 --keep-alive 5 --max-requests 1000 --max-requests-jitter 50 --log-level info --access-logfile - --error-logfile - main:app
+web: gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --preload main:app
+release: python migrate_railway.py
