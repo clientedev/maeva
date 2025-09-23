@@ -596,25 +596,16 @@ def validate_admin_session():
     return admin_session.admin
 
 def ensure_admin_exists():
-    """Ensure admin user exists with secure password hash. Creates initial admin if none exists."""
+    """Check if admin user exists, but do not create automatically for security."""
     try:
         admin = Admin.query.first()
         if not admin:
-            # Create initial admin with default password (should be changed immediately)
-            default_password = "admin123"  # Temporary - user must change on first login
-            password_hash = generate_password_hash(default_password)
-            
-            admin = Admin()
-            admin.username = 'admin'
-            admin.password_hash = password_hash
-            db.session.add(admin)
-            db.session.commit()
-            
-            print("SECURITY NOTICE: Initial admin created with default password 'admin123'")
-            print("IMPORTANT: Change the admin password immediately after first login!")
+            print("⚠️  ATENÇÃO: Nenhum usuário admin configurado!")
+            print("   Execute: railway run python setup_admin.py")
+            return False
         return True
     except Exception as e:
-        print(f"Error ensuring admin exists: {e}")
+        print(f"Error checking admin: {e}")
         return False
 
 @app.route('/admin-login', methods=['GET', 'POST'])

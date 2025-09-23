@@ -2,6 +2,7 @@
 import os
 import sys
 import logging
+from datetime import datetime
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Configure basic logging first
@@ -77,24 +78,45 @@ try:
     def basic_status():
         return "Application running", 200
     
-    # Import models and create tables
-    try:
-        with app.app_context():
-            # Import models
-            from models import Property, Post, AdminSession, PropertyImage, ChatbotConversation
-            logger.info("✅ Models imported successfully")
+    # Import models and create tables with retry logic
+    max_retries = 5
+    retry_delay = 2
+    
+    for attempt in range(max_retries):
+        try:
+            with app.app_context():
+                # Import models
+                from models import Property, Post, AdminSession, PropertyImage, ChatbotConversation, ContactMessage, Admin
+                logger.info("✅ Models imported successfully")
+                
+                # Test database connection first
+                from sqlalchemy import text
+                db.session.execute(text('SELECT 1'))
+                logger.info("✅ Database connection verified")
+                
+                # Create tables
+                db.create_all()
+                logger.info("✅ Database tables created successfully")
+                
+                # Import routes after models are ready
+                import routes
+                logger.info("✅ Routes imported successfully")
+                
+                # Success - break out of retry loop
+                break
+                
+        except Exception as e:
+            logger.error(f"Database/routes setup error (attempt {attempt + 1}/{max_retries}): {e}")
             
-            # Create tables
-            db.create_all()
-            logger.info("✅ Database tables created successfully")
-            
-            # Import routes after models are ready
-            import routes
-            logger.info("✅ Routes imported successfully")
-            
-    except Exception as e:
-        logger.error(f"Database/routes setup error: {e}")
-        # Continue anyway - let the basic app run
+            if attempt < max_retries - 1:
+                logger.info(f"Retrying in {retry_delay} seconds...")
+                import time
+                time.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+            else:
+                logger.error("❌ Failed to initialize database after all retries")
+                logger.error("Application cannot start without database. Exiting...")
+                sys.exit(1)
         
     logger.info("🎉 Application startup complete")
     
