@@ -107,37 +107,43 @@
 <div class="section-divider"></div>
 
 <!-- Enhanced Founder Spotlight Section -->
-<section class="founder-spotlight-section" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 100px 0; position: relative; overflow: hidden;">
+<section class="founder-spotlight-section" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 60px 0; position: relative; overflow: hidden;">
     <div class="section-background-pattern" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.1; background-image: url('data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;2&quot; fill=&quot;%23d4af37&quot;></circle></svg>'); background-size: 20px 20px;"></div>
     
     <div class="container position-relative">
-        <div class="text-center mb-5">
+        <div class="text-center mb-4">
             <h2 class="section-title text-white mb-3">Conheça Nossa Especialista</h2>
             <p class="section-subtitle text-white-50">Liderança, experiência e dedicação ao mercado imobiliário de alto padrão</p>
         </div>
 
-        <div class="founder-premium-card" style="background: linear-gradient(145deg, #2a2a2a, #1e1e1e); border-radius: 30px; padding: 60px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); border: 1px solid rgba(212, 175, 55, 0.2);">
+        <div class="founder-premium-card" style="background: linear-gradient(145deg, #2a2a2a, #1e1e1e); border-radius: 30px; padding: 40px 30px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); border: 1px solid rgba(212, 175, 55, 0.2);">
             <div class="row align-items-center">
                 <div class="col-lg-5 mb-4 mb-lg-0">
                     <div class="founder-photo-premium" style="position: relative; text-align: center;">
-                        <!-- Decorative golden ring -->
-                        <div style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 320px; height: 320px; border: 3px solid #d4af37; border-radius: 50%; opacity: 0.3;"></div>
-                        <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 300px; height: 300px; border: 2px solid #d4af37; border-radius: 50%; opacity: 0.5;"></div>
+                        <!-- Decorative golden ring - hidden on mobile -->
+                        <div class="d-none d-lg-block" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 320px; height: 320px; border: 3px solid #d4af37; border-radius: 50%; opacity: 0.3;"></div>
+                        <div class="d-none d-lg-block" style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 300px; height: 300px; border: 2px solid #d4af37; border-radius: 50%; opacity: 0.5;"></div>
                         
-                        <!-- Main photo container -->
-                        <div style="position: relative; width: 320px; height: 320px; margin: 0 auto; border-radius: 20px; overflow: hidden; border: 5px solid #d4af37; box-shadow: 0 15px 35px rgba(212, 175, 55, 0.3); background: white;">
+                        <!-- Main photo container - responsive sizes -->
+                        <div class="founder-photo-container" style="position: relative; width: 240px; height: 240px; margin: 0 auto; border-radius: 20px; overflow: hidden; border: 5px solid #d4af37; box-shadow: 0 15px 35px rgba(212, 175, 55, 0.3); background: white;">
                             <img src="{{ url_for('static', filename='images/rose-ventura.png') }}" 
                                  alt="Rose Ventura - Especialista em Investimentos Imobiliários" 
                                  style="width: 100%; height: 100%; object-fit: contain; object-position: center;"
                                  loading="lazy">
                         </div>
                         
-                        <!-- Floating credential badges -->
-                        <div style="position: absolute; top: 40px; right: 20px; background: linear-gradient(45deg, #d4af37, #ffd700); padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #1a1a1a; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);">
+                        <!-- Floating credential badges - repositioned for mobile -->
+                        <div class="credential-badge credential-badge-1 d-none d-lg-block" style="position: absolute; top: 20px; right: -10px; background: linear-gradient(45deg, #d4af37, #ffd700); padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #1a1a1a; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);">
                             CRECI-SP
                         </div>
-                        <div style="position: absolute; bottom: 40px; left: 20px; background: linear-gradient(45deg, #d4af37, #ffd700); padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #1a1a1a; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);">
+                        <div class="credential-badge credential-badge-2 d-none d-lg-block" style="position: absolute; bottom: 20px; left: -10px; background: linear-gradient(45deg, #d4af37, #ffd700); padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #1a1a1a; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);">
                             13+ ANOS
+                        </div>
+                        
+                        <!-- Mobile badges - below photo -->
+                        <div class="d-lg-none mt-3 text-center">
+                            <span style="display: inline-block; background: linear-gradient(45deg, #d4af37, #ffd700); padding: 6px 12px; border-radius: 15px; font-size: 11px; font-weight: bold; color: #1a1a1a; margin: 0 5px;">CRECI-SP</span>
+                            <span style="display: inline-block; background: linear-gradient(45deg, #d4af37, #ffd700); padding: 6px 12px; border-radius: 15px; font-size: 11px; font-weight: bold; color: #1a1a1a; margin: 0 5px;">13+ ANOS</span>
                         </div>
                     </div>
                 </div>
