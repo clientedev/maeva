@@ -1479,3 +1479,70 @@ def railway_health():
             'error': str(e),
             'timestamp': datetime.utcnow().isoformat()
         }, 503
+
+# DEBUG temporário - REMOVER DEPOIS
+@app.route('/debug-admin-status')
+def debug_admin_status():
+    """Debug temporário para verificar status do admin"""
+    try:
+        admin = Admin.query.first()
+        session_secret = app.secret_key[:10] + "..." if app.secret_key else "None"
+        
+        if admin:
+            # Test password hash
+            from werkzeug.security import check_password_hash
+            test_passwords = ['admin123', 'admin', '123456']
+            password_tests = {}
+            
+            for pwd in test_passwords:
+                try:
+                    password_tests[pwd] = check_password_hash(admin.password_hash, pwd)
+                except:
+                    password_tests[pwd] = "ERROR"
+            
+            return {
+                'admin_exists': True,
+                'username': admin.username,
+                'created_at': admin.created_at.isoformat() if admin.created_at else None,
+                'last_login': admin.last_login.isoformat() if admin.last_login else None,
+                'password_hash_prefix': admin.password_hash[:30] + "...",
+                'session_secret_prefix': session_secret,
+                'password_tests': password_tests
+            }
+        else:
+            return {
+                'admin_exists': False,
+                'session_secret_prefix': session_secret
+            }
+    except Exception as e:
+        return {'error': str(e)}
+
+# DEBUG temporário - RESET ADMIN VIA WEB
+@app.route('/debug-reset-admin/<secret>')
+def debug_reset_admin(secret):
+    """Reset admin via web - use secret for security"""
+    if secret != "reset4731v8":
+        return {"error": "Invalid secret"}, 403
+        
+    try:
+        from werkzeug.security import generate_password_hash
+        
+        admin = Admin.query.first()
+        if not admin:
+            admin = Admin()
+            admin.username = 'admin'
+            admin.created_at = datetime.utcnow()
+            db.session.add(admin)
+        
+        # Reset password
+        admin.password_hash = generate_password_hash('admin123')
+        db.session.commit()
+        
+        return {
+            'success': True,
+            'message': 'Admin reset successful',
+            'username': 'admin',
+            'password': 'admin123'
+        }
+    except Exception as e:
+        return {'error': str(e)}, 500
