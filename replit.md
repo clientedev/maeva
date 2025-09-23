@@ -6,6 +6,17 @@ Maeva Investimentos Imobiliários is a luxury real estate website for a São Pau
 
 The application provides a public-facing website for potential clients to browse properties and contact the company, along with an administrative interface for managing property listings through file uploads and content management.
 
+## Recent Changes
+
+### September 23, 2025 - Project Import and Setup
+- Successfully imported GitHub project to Replit environment
+- Cleaned up requirements.txt (removed duplicates)
+- Set up PostgreSQL database integration
+- Configured workflow for Flask application on port 5000
+- Verified application functionality with health checks
+- Configured deployment settings for autoscale
+- Application now fully functional in Replit environment
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
