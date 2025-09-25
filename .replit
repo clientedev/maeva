@@ -1,4 +1,4 @@
-modules = ["web", "python-3.11", "nodejs-20", "bash", "postgresql-16"]
+modules = ["web", "python-3.11", "nodejs-20", "bash"]
 
 [nix]
 channel = "stable-25_05"
@@ -6,7 +6,7 @@ packages = ["file", "freetype", "lcms2", "libimagequant", "libjpeg", "libtiff", 
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["gunicorn", "--bind", "0.0.0.0:5000", "--reuse-port", "main:app"]
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
 build = ["python", "migrate_db.py"]
 
 [workflows]
