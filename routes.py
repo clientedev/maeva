@@ -1484,7 +1484,7 @@ def debug_admin_status():
     """Debug temporário para verificar status do admin"""
     try:
         admin = Admin.query.first()
-        session_secret = app.secret_key[:10] + "..." if app.secret_key else "None"
+        session_secret = str(app.secret_key)[:10] + "..." if app.secret_key else "None"
         
         if admin:
             # Test password hash
