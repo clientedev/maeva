@@ -35,8 +35,17 @@ railway up
 
 1. **Migração automática**: `python migrate_db.py` executa primeiro
 2. **Criação de colunas**: Adiciona `video_data`, `video_filename`, `video_content_type`
-3. **Servidor otimizado**: Gunicorn com configurações para Railway
-4. **Healthcheck**: Verifica se aplicação responde corretamente
+3. **Setup do admin**: `python setup_railway_admin.py` cria usuário admin
+4. **Servidor otimizado**: Gunicorn com configurações para Railway
+5. **Healthcheck**: Verifica se aplicação responde corretamente
+
+## 👤 Admin no Railway
+
+**Credenciais sempre funcionais após deploy:**
+- Usuário: `maeva.admin`
+- Senha: `maeva4731`
+
+O script `setup_railway_admin.py` garante que o admin seja criado/atualizado a cada deploy.
 
 ## ⚙️ Configurações aplicadas
 
