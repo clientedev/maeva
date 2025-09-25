@@ -1,5 +1,46 @@
 /* Luxury Real Estate Website Styles */
 
+/* Admin Gear Icon - Discretely Hidden */
+.admin-gear-icon {
+    color: transparent;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0;
+    margin-left: 10px;
+}
+
+.admin-gear-icon:hover {
+    color: var(--luxury-gold);
+    opacity: 1;
+    transform: rotate(90deg);
+}
+
+/* Show admin gear on footer hover */
+.luxury-footer:hover .admin-gear-icon {
+    opacity: 0.3;
+}
+
+.luxury-footer:hover .admin-gear-icon:hover {
+    opacity: 1;
+}
+
+/* Admin Modal Styles */
+.admin-modal {
+    background-color: var(--luxury-dark);
+    border: 1px solid var(--luxury-gold);
+    border-radius: 10px;
+}
+
+.admin-modal .modal-header {
+    background-color: var(--luxury-black);
+    border-bottom: 1px solid var(--luxury-gold);
+}
+
+.admin-modal .modal-body {
+    background-color: var(--luxury-dark);
+}
+
 /* Property Card Clickable Styles */
 .property-link {
     text-decoration: none;

