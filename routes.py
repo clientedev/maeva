@@ -594,51 +594,40 @@ def validate_admin_session():
     return admin_session.admin
 
 def ensure_admin_exists():
-    """Check if admin user exists, but do not create automatically for security."""
+    """Check if admin user exists. For security, only creates admin if ADMIN_INITIAL_PASSWORD is explicitly set."""
     try:
         admin = Admin.query.first()
         if not admin:
-            print("⚠️  ATENÇÃO: Nenhum usuário admin configurado!")
-            print("   Execute: railway run python setup_admin.py")
-            return False
+            # Check if initial admin setup is allowed via environment
+            initial_username = os.environ.get('ADMIN_INITIAL_USERNAME', 'maeva')
+            initial_password = os.environ.get('ADMIN_INITIAL_PASSWORD')
+            
+            # Security: Only create admin if password is explicitly provided via environment
+            if not initial_password:
+                print("🚨 SETUP REQUIRED: No admin user configured")
+                print("   For security, admin creation requires ADMIN_INITIAL_PASSWORD environment variable")
+                print("   Set ADMIN_INITIAL_PASSWORD and restart the application")
+                return False
+            
+            print("⚠️  Nenhum admin encontrado, criando com credenciais do ambiente...")
+            # Create admin user with environment-provided credentials
+            from werkzeug.security import generate_password_hash
+            
+            admin = Admin()
+            admin.username = initial_username
+            admin.password_hash = generate_password_hash(initial_password)
+            admin.created_at = datetime.utcnow()
+            
+            db.session.add(admin)
+            db.session.commit()
+            print(f"✅ Usuário admin criado: {initial_username}")
+            print("⚠️  IMPORTANTE: Altere a senha após o primeiro login!")
+            return True
         return True
     except Exception as e:
         print(f"Error checking admin: {e}")
         return False
 
-@app.route('/admin-quick-access', methods=['POST'])
-def admin_quick_access():
-    """Acesso rápido via engrenagem do footer com senha específica maeva4731"""
-    password = request.form.get('password', '')
-    
-    # Verificar senha específica
-    if password == 'maeva4731':
-        # Estabelecer sessão admin sem verificar banco
-        session_token = str(uuid.uuid4())
-        expires_at = datetime.utcnow() + timedelta(hours=2)
-        
-        # Usar mesmo padrão de sessão do sistema atual
-        session['admin_token'] = session_token
-        session['quick_access'] = True  # Marcar como acesso rápido
-        
-        # Criar uma sessão temporária para compatibilidade (se admin existir)
-        admin = Admin.query.first()
-        if admin:
-            admin_session = AdminSession()
-            admin_session.session_token = session_token
-            admin_session.admin_id = admin.id
-            admin_session.expires_at = expires_at
-            try:
-                db.session.add(admin_session)
-                db.session.commit()
-            except:
-                db.session.rollback()
-        
-        flash('Acesso administrativo autorizado!', 'success')
-        return redirect(url_for('admin_panel'))
-    else:
-        flash('Senha de acesso incorreta!', 'error')
-        return redirect(url_for('index'))
 
 @app.route('/admin-login', methods=['GET', 'POST'])
 def admin_login():
@@ -1512,69 +1501,4 @@ def railway_health():
             'timestamp': datetime.utcnow().isoformat()
         }, 503
 
-# DEBUG temporário - REMOVER DEPOIS
-@app.route('/debug-admin-status')
-def debug_admin_status():
-    """Debug temporário para verificar status do admin"""
-    try:
-        admin = Admin.query.first()
-        session_secret = str(app.secret_key)[:10] + "..." if app.secret_key else "None"
-        
-        if admin:
-            # Test password hash
-            from werkzeug.security import check_password_hash
-            test_passwords = ['admin123', 'admin', '123456']
-            password_tests = {}
-            
-            for pwd in test_passwords:
-                try:
-                    password_tests[pwd] = check_password_hash(admin.password_hash, pwd)
-                except:
-                    password_tests[pwd] = "ERROR"
-            
-            return {
-                'admin_exists': True,
-                'username': admin.username,
-                'created_at': admin.created_at.isoformat() if admin.created_at else None,
-                'last_login': admin.last_login.isoformat() if admin.last_login else None,
-                'password_hash_prefix': admin.password_hash[:30] + "...",
-                'session_secret_prefix': session_secret,
-                'password_tests': password_tests
-            }
-        else:
-            return {
-                'admin_exists': False,
-                'session_secret_prefix': session_secret
-            }
-    except Exception as e:
-        return {'error': str(e)}
 
-# DEBUG temporário - RESET ADMIN VIA WEB
-@app.route('/debug-reset-admin/<secret>')
-def debug_reset_admin(secret):
-    """Reset admin via web - use secret for security"""
-    if secret != "reset4731v8":
-        return {"error": "Invalid secret"}, 403
-        
-    try:
-        from werkzeug.security import generate_password_hash
-        
-        admin = Admin.query.first()
-        if not admin:
-            admin = Admin()
-            admin.username = 'admin'
-            admin.created_at = datetime.utcnow()
-            db.session.add(admin)
-        
-        # Reset password
-        admin.password_hash = generate_password_hash('admin123')
-        db.session.commit()
-        
-        return {
-            'success': True,
-            'message': 'Admin reset successful',
-            'username': 'admin',
-            'password': 'admin123'
-        }
-    except Exception as e:
-        return {'error': str(e)}, 500

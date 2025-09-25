@@ -30,7 +30,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "SESSION_SECRET=\"$(openssl rand -hex 32)\" gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
+args = "ADMIN_INITIAL_USERNAME=\"maeva\" ADMIN_INITIAL_PASSWORD=\"maeva4731\" SESSION_SECRET=\"$(openssl rand -hex 32)\" gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
 waitForPort = 5000
 
 [[ports]]
@@ -38,7 +38,7 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 39659
+localPort = 33275
 externalPort = 3000
 
 [agent]
