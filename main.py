@@ -18,13 +18,9 @@ logger = logging.getLogger(__name__)
 try:
     logger.info("🚀 Starting Maeva Real Estate application...")
     
-    # Import Flask and create basic app
+    # Import Flask and database
     from flask import Flask
-    from flask_sqlalchemy import SQLAlchemy
-    from sqlalchemy.orm import DeclarativeBase
-    
-    class Base(DeclarativeBase):
-        pass
+    from database import db
     
     # Create Flask app
     app = Flask(__name__)
@@ -55,7 +51,6 @@ try:
     os.makedirs('uploads', exist_ok=True)
     
     # Initialize database
-    db = SQLAlchemy(model_class=Base)
     db.init_app(app)
     
     logger.info("✅ Flask app initialized successfully")
@@ -65,9 +60,8 @@ try:
     def health_check():
         try:
             # Simple database test
-            with app.app_context():
-                from sqlalchemy import text
-                db.session.execute(text('SELECT 1'))
+            from sqlalchemy import text
+            db.session.execute(text('SELECT 1'))
             return {'status': 'healthy', 'database': 'connected'}, 200
         except Exception as e:
             logger.error(f"Health check failed: {e}")
@@ -78,45 +72,24 @@ try:
     def basic_status():
         return "Application running", 200
     
-    # Import models and create tables with retry logic
-    max_retries = 5
-    retry_delay = 2
+    # Initialize database tables and routes with application context
+    with app.app_context():
+        # Import models first
+        import models
+        logger.info("✅ Models imported successfully")
+        
+        # Test database connection
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
+        logger.info("✅ Database connection verified")
+        
+        # Create tables
+        db.create_all()
+        logger.info("✅ Database tables created successfully")
     
-    for attempt in range(max_retries):
-        try:
-            with app.app_context():
-                # Import models
-                from models import Property, Post, AdminSession, PropertyImage, ChatbotConversation, ContactMessage, Admin
-                logger.info("✅ Models imported successfully")
-                
-                # Test database connection first
-                from sqlalchemy import text
-                db.session.execute(text('SELECT 1'))
-                logger.info("✅ Database connection verified")
-                
-                # Create tables
-                db.create_all()
-                logger.info("✅ Database tables created successfully")
-                
-                # Import routes after models are ready
-                import routes
-                logger.info("✅ Routes imported successfully")
-                
-                # Success - break out of retry loop
-                break
-                
-        except Exception as e:
-            logger.error(f"Database/routes setup error (attempt {attempt + 1}/{max_retries}): {e}")
-            
-            if attempt < max_retries - 1:
-                logger.info(f"Retrying in {retry_delay} seconds...")
-                import time
-                time.sleep(retry_delay)
-                retry_delay *= 2  # Exponential backoff
-            else:
-                logger.error("❌ Failed to initialize database after all retries")
-                logger.error("Application cannot start without database. Exiting...")
-                sys.exit(1)
+    # Import routes after models are ready
+    import routes
+    logger.info("✅ Routes imported successfully")
         
     logger.info("🎉 Application startup complete")
     

@@ -11,11 +11,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from openai import OpenAI
 from sqlalchemy.orm import joinedload
 from sqlalchemy import inspect
-# Import from main to avoid circular imports
-try:
-    from main import app, db
-except ImportError:
-    from app import app, db
+# Import from main and database modules
+from main import app
+from database import db
 
 from models import Property, Post, Admin, AdminSession, PropertyImage, ChatbotConversation, ContactMessage
 
