@@ -629,60 +629,59 @@ def ensure_admin_exists():
         return False
 
 
-@app.route('/admin-login', methods=['GET', 'POST'])
+@app.route('/admin-login', methods=['POST'])
 def admin_login():
     # Ensure admin user exists
     if not ensure_admin_exists():
         flash('Erro interno do sistema. Contate o administrador.', 'error')
-        return render_template('admin_login.html')
+        return redirect(url_for('index'))
     
-    if request.method == 'POST':
-        username = request.form.get('username', 'admin')
-        password = request.form.get('password')
-        
-        if not password:
-            flash('Senha é obrigatória!', 'error')
-            return render_template('admin_login.html')
-        
-        # Find admin user
-        admin = Admin.query.filter_by(username=username).first()
-        
-        if admin and check_password_hash(admin.password_hash, password):
-            # SECURITY: Valid login with secure password hash verification
-            session_token = str(uuid.uuid4())
-            expires_at = datetime.utcnow() + timedelta(hours=2)
-            
-            admin_session = AdminSession()
-            admin_session.session_token = session_token
-            admin_session.admin_id = admin.id
-            admin_session.expires_at = expires_at
-            db.session.add(admin_session)
-            
-            # Update last login
-            admin.last_login = datetime.utcnow()
-            db.session.commit()
-            
-            session['admin_token'] = session_token
-            flash('Login realizado com sucesso!', 'success')
-            return redirect(url_for('admin_panel'))
-        else:
-            flash('Usuário ou senha incorretos!', 'error')
+    username = request.form.get('username', 'admin')
+    password = request.form.get('password')
     
-    return render_template('admin_login.html')
+    if not password:
+        flash('Senha é obrigatória!', 'error')
+        return redirect(url_for('index'))
+    
+    # Find admin user
+    admin = Admin.query.filter_by(username=username).first()
+    
+    if admin and check_password_hash(admin.password_hash, password):
+        # SECURITY: Valid login with secure password hash verification
+        session_token = str(uuid.uuid4())
+        expires_at = datetime.utcnow() + timedelta(hours=2)
+        
+        admin_session = AdminSession()
+        admin_session.session_token = session_token
+        admin_session.admin_id = admin.id
+        admin_session.expires_at = expires_at
+        db.session.add(admin_session)
+        
+        # Update last login
+        admin.last_login = datetime.utcnow()
+        db.session.commit()
+        
+        session['admin_token'] = session_token
+        flash('Login realizado com sucesso!', 'success')
+        return redirect(url_for('admin_panel'))
+    else:
+        flash('Usuário ou senha incorretos!', 'error')
+        return redirect(url_for('index'))
 
 @app.route('/admin')
 def admin_panel():
     # Check if admin is logged in
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     # Verify token
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
         flash('Sessão expirada. Faça login novamente.', 'error')
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     # Optimized queries - limit results for better performance
     properties = Property.query.order_by(Property.created_at.desc()).limit(20).all()
@@ -701,7 +700,7 @@ def admin_logout():
         session.pop('admin_token', None)
     
     flash('Logout realizado com sucesso!', 'success')
-    return redirect(url_for('admin_login'))
+    return redirect(url_for('index'))
 
 @app.route('/admin/change-password', methods=['GET', 'POST'])
 def admin_change_password():
@@ -709,7 +708,7 @@ def admin_change_password():
     admin = validate_admin_session()
     if not admin:
         flash('Acesso negado. Faça login novamente.', 'error')
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     if request.method == 'POST':
         current_password = request.form.get('current_password')
@@ -753,12 +752,13 @@ def add_property():
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     try:
         # Get form data
@@ -884,12 +884,13 @@ def delete_property(property_id):
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     try:
         property_obj = Property.query.get_or_404(property_id)
@@ -1078,12 +1079,13 @@ def add_post():
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     try:
         # Get form data
@@ -1179,12 +1181,13 @@ def delete_post(post_id):
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     try:
         post_obj = Post.query.get_or_404(post_id)
@@ -1223,12 +1226,13 @@ def edit_property(property_id):
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     property_obj = Property.query.get_or_404(property_id)
     
@@ -1242,12 +1246,13 @@ def update_property(property_id):
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     try:
         property_obj = Property.query.get_or_404(property_id)
@@ -1276,12 +1281,13 @@ def edit_post(post_id):
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     post_obj = Post.query.get_or_404(post_id)
     
@@ -1295,12 +1301,13 @@ def update_post(post_id):
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     try:
         post_obj = Post.query.get_or_404(post_id)
@@ -1396,12 +1403,13 @@ def admin_conversations():
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     conversations = ChatbotConversation.query.order_by(ChatbotConversation.created_at.desc()).all()
     
@@ -1412,12 +1420,13 @@ def admin_contact_messages():
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     # Get contact messages with pagination for better performance
     page = request.args.get('page', 1, type=int)
@@ -1437,12 +1446,13 @@ def mark_contact_message_read(message_id):
     # Check admin authentication
     admin_token = session.get('admin_token')
     if not admin_token:
-        return redirect(url_for('admin_login'))
+        flash('Acesso negado. Faça login.', 'error')
+        return redirect(url_for('index'))
     
     admin_session = AdminSession.query.filter_by(session_token=admin_token).first()
     if not admin_session or admin_session.expires_at < datetime.utcnow():
         session.pop('admin_token', None)
-        return redirect(url_for('admin_login'))
+        return redirect(url_for('index'))
     
     try:
         message = ContactMessage.query.get_or_404(message_id)
