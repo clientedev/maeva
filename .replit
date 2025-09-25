@@ -6,7 +6,7 @@ packages = ["file", "freetype", "lcms2", "libimagequant", "libjpeg", "libtiff", 
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "--reuse-port", "main:app"]
 build = ["python", "migrate_db.py"]
 
 [workflows]
@@ -36,6 +36,10 @@ waitForPort = 5000
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 39659
+externalPort = 3000
 
 [agent]
 expertMode = true
