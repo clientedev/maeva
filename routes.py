@@ -951,12 +951,15 @@ def serve_property_main_image(property_id):
     if not first_image:
         first_image = PropertyImage.query.filter_by(property_id=property_id).order_by(PropertyImage.order_index).first()
     
-    if first_image and first_image.has_image_data():
+    if first_image and first_image.has_image_file():
+        with open(first_image.image_path, 'rb') as f:
+            file_data = f.read()
+        content_type = first_image.image_content_type or get_file_content_type(first_image.image_path)
         return Response(
-            first_image.image_data,
-            mimetype=first_image.image_content_type or 'image/jpeg',
+            file_data,
+            mimetype=content_type,
             headers={
-                'Content-Disposition': f'inline; filename="{first_image.image_filename}"',
+                'Content-Disposition': f'inline; filename="{first_image.image_filename or os.path.basename(first_image.image_path)}"',
                 'Cache-Control': 'public, max-age=86400',  # 24 hours cache
                 'ETag': f'property-{property_id}-main'
             }
@@ -979,12 +982,15 @@ def serve_property_image(property_id, image_index):
         order_index=image_index
     ).first_or_404()
     
-    if property_image.has_image_data():
+    if property_image.has_image_file():
+        with open(property_image.image_path, 'rb') as f:
+            file_data = f.read()
+        content_type = property_image.image_content_type or get_file_content_type(property_image.image_path)
         return Response(
-            property_image.image_data,
-            mimetype=property_image.image_content_type or 'image/jpeg',
+            file_data,
+            mimetype=content_type,
             headers={
-                'Content-Disposition': f'inline; filename="{property_image.image_filename}"',
+                'Content-Disposition': f'inline; filename="{property_image.image_filename or os.path.basename(property_image.image_path)}"',
                 'Cache-Control': 'public, max-age=86400',
                 'ETag': f'property-{property_id}-{image_index}'
             }
@@ -1004,12 +1010,15 @@ def serve_property_video(property_id):
     """Serve property video from database"""
     property_obj = Property.query.get_or_404(property_id)
     
-    if property_obj.has_video_data():
+    if property_obj.has_video_file():
+        with open(property_obj.video_path, 'rb') as f:
+            file_data = f.read()
+        content_type = property_obj.video_content_type or get_file_content_type(property_obj.video_path)
         return Response(
-            property_obj.video_data,
-            mimetype=property_obj.video_content_type or 'video/mp4',
+            file_data,
+            mimetype=content_type,
             headers={
-                'Content-Disposition': f'inline; filename="{property_obj.video_filename}"',
+                'Content-Disposition': f'inline; filename="{property_obj.video_filename or os.path.basename(property_obj.video_path)}"',
                 'Cache-Control': 'max-age=3600'
             }
         )
@@ -1028,12 +1037,15 @@ def serve_post_image(post_id):
     """Serve post image from database"""
     post_obj = Post.query.get_or_404(post_id)
     
-    if post_obj.has_image_data():
+    if post_obj.has_image_file():
+        with open(post_obj.image_path, 'rb') as f:
+            file_data = f.read()
+        content_type = post_obj.image_content_type or get_file_content_type(post_obj.image_path)
         return Response(
-            post_obj.image_data,
-            mimetype=post_obj.image_content_type,
+            file_data,
+            mimetype=content_type,
             headers={
-                'Content-Disposition': f'inline; filename="{post_obj.image_filename}"',
+                'Content-Disposition': f'inline; filename="{post_obj.image_filename or os.path.basename(post_obj.image_path)}"',
                 'Cache-Control': 'max-age=3600'
             }
         )
@@ -1052,12 +1064,15 @@ def serve_post_video(post_id):
     """Serve post video from database"""
     post_obj = Post.query.get_or_404(post_id)
     
-    if post_obj.has_video_data():
+    if post_obj.has_video_file():
+        with open(post_obj.video_path, 'rb') as f:
+            file_data = f.read()
+        content_type = post_obj.video_content_type or get_file_content_type(post_obj.video_path)
         return Response(
-            post_obj.video_data,
-            mimetype=post_obj.video_content_type,
+            file_data,
+            mimetype=content_type,
             headers={
-                'Content-Disposition': f'inline; filename="{post_obj.video_filename}"',
+                'Content-Disposition': f'inline; filename="{post_obj.video_filename or os.path.basename(post_obj.video_path)}"',
                 'Cache-Control': 'max-age=3600'
             }
         )
