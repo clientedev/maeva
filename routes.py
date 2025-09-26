@@ -639,34 +639,45 @@ def admin_login():
     username = request.form.get('username', 'admin')
     password = request.form.get('password')
     
+    # DEBUG: Log login attempt
+    print(f"DEBUG: Login attempt - Username: '{username}', Password provided: {bool(password)}")
+    
     if not password:
         flash('Senha é obrigatória!', 'error')
         return redirect(url_for('index'))
     
     # Find admin user
     admin = Admin.query.filter_by(username=username).first()
+    print(f"DEBUG: Admin found: {admin is not None}")
     
-    if admin and check_password_hash(admin.password_hash, password):
-        # SECURITY: Valid login with secure password hash verification
-        session_token = str(uuid.uuid4())
-        expires_at = datetime.utcnow() + timedelta(hours=2)
+    if admin:
+        print(f"DEBUG: Admin username: '{admin.username}'")
+        password_valid = check_password_hash(admin.password_hash, password)
+        print(f"DEBUG: Password valid: {password_valid}")
         
-        admin_session = AdminSession()
-        admin_session.session_token = session_token
-        admin_session.admin_id = admin.id
-        admin_session.expires_at = expires_at
-        db.session.add(admin_session)
-        
-        # Update last login
-        admin.last_login = datetime.utcnow()
-        db.session.commit()
-        
-        session['admin_token'] = session_token
-        flash('Login realizado com sucesso!', 'success')
-        return redirect(url_for('admin_panel'))
-    else:
-        flash('Usuário ou senha incorretos!', 'error')
-        return redirect(url_for('index'))
+        if password_valid:
+            # SECURITY: Valid login with secure password hash verification
+            session_token = str(uuid.uuid4())
+            expires_at = datetime.utcnow() + timedelta(hours=2)
+            
+            admin_session = AdminSession()
+            admin_session.session_token = session_token
+            admin_session.admin_id = admin.id
+            admin_session.expires_at = expires_at
+            db.session.add(admin_session)
+            
+            # Update last login
+            admin.last_login = datetime.utcnow()
+            db.session.commit()
+            
+            session['admin_token'] = session_token
+            print(f"DEBUG: Login successful for {username}")
+            flash('Login realizado com sucesso!', 'success')
+            return redirect(url_for('admin_panel'))
+    
+    print(f"DEBUG: Login failed for username '{username}'")
+    flash('Usuário ou senha incorretos!', 'error')
+    return redirect(url_for('index'))
 
 @app.route('/admin')
 def admin_panel():
