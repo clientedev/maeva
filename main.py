@@ -27,7 +27,9 @@ try:
     app.secret_key = os.environ.get("SESSION_SECRET")
     if not app.secret_key:
         raise RuntimeError("SESSION_SECRET environment variable is required for security")
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    # Configure ProxyFix for cloud platforms (Railway, Replit, etc.)
+    # This ensures proper handling of proxy headers for HTTPS and sessions
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
     
     # Database setup
     database_url = os.environ.get("DATABASE_URL", "sqlite:///maeva.db")
