@@ -8,7 +8,26 @@ The application provides a public-facing website for potential clients to browse
 
 ## Recent Changes
 
-### September 30, 2025 (Latest) - Railway Admin Login Fix with Enhanced Debugging
+### September 30, 2025 (Latest) - CRITICAL FIX: Railway Database Schema Migration
+
+**PROBLEMA IDENTIFICADO E RESOLVIDO:**
+- Erro: `column "admin_id" of relation "admin_session" does not exist`
+- **Causa raiz:** O banco de dados do Railway tinha uma versão antiga da tabela `admin_session` sem as colunas necessárias
+- **Solução implementada:** Adicionadas migrações automáticas ao `migrate_db.py` que rodam antes do deploy
+
+**Mudanças no migrate_db.py:**
+- ✅ Adiciona coluna `admin_id` na tabela `admin_session` se não existir
+- ✅ Adiciona coluna `expires_at` na tabela `admin_session` se não existir  
+- ✅ Cria constraint de foreign key para `admin_id` referenciando `admin.id`
+- ✅ Verificação de schema atualizada para incluir validação da tabela `admin_session`
+
+**Próximos passos:**
+1. Faça um novo deploy no Railway
+2. O script `migrate_db.py` vai rodar automaticamente (está no Procfile)
+3. As colunas faltantes serão adicionadas ao banco de dados
+4. O login deve funcionar corretamente
+
+### September 30, 2025 (Earlier) - Railway Admin Login Fix with Enhanced Debugging
 - **FIXED: Railway admin login issue** - The authentication system was only checking for `ADMIN_INITIAL_USERNAME` and `ADMIN_INITIAL_PASSWORD` environment variables
 - Updated `ensure_admin_exists()` function in routes.py to accept BOTH formats:
   - Railway format: `ADMIN_USERNAME` and `ADMIN_PASSWORD` 

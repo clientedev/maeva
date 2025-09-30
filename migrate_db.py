@@ -21,6 +21,22 @@ def add_missing_columns():
     """Adiciona colunas que podem estar faltando no banco de dados"""
     
     migrations = [
+        # AdminSession table - CRITICAL FIX for Railway login
+        "ALTER TABLE admin_session ADD COLUMN IF NOT EXISTS admin_id INTEGER",
+        "ALTER TABLE admin_session ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP",
+        # Add foreign key constraint if it doesn't exist (ignore error if already exists)
+        """
+        DO $$ 
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_constraint WHERE conname = 'admin_session_admin_id_fkey'
+            ) THEN
+                ALTER TABLE admin_session ADD CONSTRAINT admin_session_admin_id_fkey 
+                FOREIGN KEY (admin_id) REFERENCES admin(id);
+            END IF;
+        END $$;
+        """,
+        
         # Property table
         "ALTER TABLE property ADD COLUMN IF NOT EXISTS video_data BYTEA",
         "ALTER TABLE property ADD COLUMN IF NOT EXISTS video_filename VARCHAR(255)",
@@ -58,6 +74,7 @@ def check_database_schema():
     """Verifica se todas as colunas necessárias existem"""
     
     expected_columns = {
+        'admin_session': ['admin_id', 'expires_at'],
         'property': ['video_data', 'video_filename', 'video_content_type'],
         'property_image': ['image_data', 'image_filename', 'image_content_type'],
         'post': ['image_data', 'image_filename', 'image_content_type', 

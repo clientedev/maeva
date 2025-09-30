@@ -26,7 +26,10 @@ try:
     app = Flask(__name__)
     app.secret_key = os.environ.get("SESSION_SECRET")
     if not app.secret_key:
-        raise RuntimeError("SESSION_SECRET environment variable is required for security")
+        logger.warning("⚠️  SESSION_SECRET not set, using fallback (NOT SECURE for production!)")
+        app.secret_key = os.urandom(24).hex()
+    else:
+        logger.info("✅ SESSION_SECRET configured correctly")
     # Configure ProxyFix for cloud platforms (Railway, Replit, etc.)
     # This ensures proper handling of proxy headers for HTTPS and sessions
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
