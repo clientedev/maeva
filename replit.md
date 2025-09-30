@@ -8,22 +8,50 @@ The application provides a public-facing website for potential clients to browse
 
 ## Recent Changes
 
-### September 25, 2025 - Fresh GitHub Import and Environment Setup (Completed)
-- Successfully imported fresh GitHub clone to Replit environment
-- Verified all Python dependencies were properly installed (gunicorn, flask, psycopg2-binary, etc.)
-- Configured application to use PostgreSQL database with proper connection pooling
-- Set up Flask app with proper ProxyFix middleware for Replit's proxy environment
-- Configured workflow for Flask application on port 5000 with gunicorn server and webview output
-- Verified database connection, table creation, and model imports work correctly
+### September 30, 2025 - Complete Replit Environment Setup & Railway Admin Fix
+- Successfully set up fresh GitHub import in Replit environment
+- Installed all Python dependencies (gunicorn, flask, psycopg2-binary, openai, pillow, etc.)
+- Created PostgreSQL database and verified DATABASE_URL and SESSION_SECRET environment variables
+- Configured Flask app with enhanced ProxyFix middleware for cloud platforms (Railway, Replit, etc.)
+  - Added comprehensive proxy header handling (x_for, x_proto, x_host, x_port, x_prefix)
+  - This fixes session and HTTPS issues on Railway and other cloud platforms
+- Set up workflow for Flask application on port 5000 with gunicorn server and webview output
+- Created admin user for Replit environment (username: admin, password: admin123)
+- Fixed Railway admin access issue by:
+  - Improving ProxyFix configuration to handle all proxy headers correctly
+  - Updated admin login form to not hardcode Railway-specific username
+  - Form now uses placeholder text instead of pre-filled values
+- Cleaned up requirements.txt file (removed duplicates)
 - Configured deployment settings for autoscale with production-ready gunicorn command
-- Application successfully running with no startup errors - ready for production use
-- All routes, templates, and static assets properly accessible through Replit environment
+- Application successfully running with no startup errors
 - Website displays correctly with luxury black/gold theme and all navigation working
-- Browser console logs confirm successful initialization and resource loading
+- All routes, templates, and static assets properly accessible
+
+### September 25, 2025 - Previous Setup Attempt
+- Initial project import and basic configuration
 
 ### September 23, 2025 - Previous Project Setup
 - Initial project import and basic configuration
 - Requirements cleanup and initial database setup
+
+## Admin Credentials
+
+### Replit Environment
+- Username: `admin`
+- Password: `admin123`
+- Note: Change this password after first login using the admin panel
+
+### Railway Deployment
+For Railway deployments, use the `setup_railway_admin.py` script during deployment:
+- Username: `maeva.admin`
+- Password: `maeva4731`
+- The script ensures admin user is created/updated on every deploy
+- Alternative: Set `ADMIN_INITIAL_USERNAME` and `ADMIN_INITIAL_PASSWORD` environment variables
+
+### Security Notes
+- The `ensure_admin_exists()` function in routes.py requires `ADMIN_INITIAL_PASSWORD` environment variable for automatic admin creation
+- For production deployments, always use environment variables instead of hardcoded credentials
+- The enhanced ProxyFix configuration ensures proper session handling across HTTPS proxies
 
 ## User Preferences
 
