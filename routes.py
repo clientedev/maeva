@@ -601,8 +601,19 @@ def ensure_admin_exists():
             # Check environment variables - support both formats (Railway and Replit)
             # Railway uses: ADMIN_USERNAME, ADMIN_PASSWORD
             # Replit uses: ADMIN_INITIAL_USERNAME, ADMIN_INITIAL_PASSWORD
-            initial_username = os.environ.get('ADMIN_USERNAME') or os.environ.get('ADMIN_INITIAL_USERNAME') or 'admin'
-            initial_password = os.environ.get('ADMIN_PASSWORD') or os.environ.get('ADMIN_INITIAL_PASSWORD')
+            admin_username_var = os.environ.get('ADMIN_USERNAME')
+            admin_password_var = os.environ.get('ADMIN_PASSWORD')
+            admin_initial_username_var = os.environ.get('ADMIN_INITIAL_USERNAME')
+            admin_initial_password_var = os.environ.get('ADMIN_INITIAL_PASSWORD')
+            
+            print(f"🔍 Checking environment variables:")
+            print(f"   ADMIN_USERNAME: {'SET' if admin_username_var else 'NOT SET'}")
+            print(f"   ADMIN_PASSWORD: {'SET' if admin_password_var else 'NOT SET'}")
+            print(f"   ADMIN_INITIAL_USERNAME: {'SET' if admin_initial_username_var else 'NOT SET'}")
+            print(f"   ADMIN_INITIAL_PASSWORD: {'SET' if admin_initial_password_var else 'NOT SET'}")
+            
+            initial_username = admin_username_var or admin_initial_username_var or 'admin'
+            initial_password = admin_password_var or admin_initial_password_var
             
             # Security: Only create admin if password is explicitly provided via environment
             if not initial_password:
@@ -611,7 +622,8 @@ def ensure_admin_exists():
                 print("   Set one of these variables and restart the application")
                 return False
             
-            print("⚠️  Nenhum admin encontrado, criando com credenciais do ambiente...")
+            print(f"⚠️  Nenhum admin encontrado, criando com credenciais do ambiente...")
+            print(f"   Username que será criado: {initial_username}")
             # Create admin user with environment-provided credentials
             from werkzeug.security import generate_password_hash
             
@@ -622,52 +634,74 @@ def ensure_admin_exists():
             
             db.session.add(admin)
             db.session.commit()
-            print(f"✅ Usuário admin criado: {initial_username}")
+            print(f"✅ Usuário admin criado com sucesso: {initial_username}")
             print("⚠️  IMPORTANTE: Altere a senha após o primeiro login!")
             return True
+        else:
+            print(f"✅ Admin user already exists: {admin.username}")
         return True
     except Exception as e:
-        print(f"Error checking admin: {e}")
+        print(f"❌ Error checking/creating admin: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 
 @app.route('/admin-login', methods=['POST'])
 def admin_login():
-    # Ensure admin user exists
-    if not ensure_admin_exists():
-        flash('Erro interno do sistema. Contate o administrador.', 'error')
-        return redirect(url_for('index'))
-    
-    username = request.form.get('username')
-    password = request.form.get('password')
-    
-    if not username or not password:
-        flash('Usuário e senha são obrigatórios!', 'error')
-        return redirect(url_for('index'))
-    
-    # Find admin user
-    admin = Admin.query.filter_by(username=username).first()
-    
-    if admin and check_password_hash(admin.password_hash, password):
-        # SECURITY: Valid login with secure password hash verification
-        session_token = str(uuid.uuid4())
-        expires_at = datetime.utcnow() + timedelta(hours=2)
+    try:
+        # Ensure admin user exists
+        if not ensure_admin_exists():
+            print("❌ Admin login failed: ensure_admin_exists returned False")
+            flash('Erro interno do sistema. Contate o administrador.', 'error')
+            return redirect(url_for('index'))
         
-        admin_session = AdminSession()
-        admin_session.session_token = session_token
-        admin_session.admin_id = admin.id
-        admin_session.expires_at = expires_at
-        db.session.add(admin_session)
+        username = request.form.get('username')
+        password = request.form.get('password')
         
-        # Update last login
-        admin.last_login = datetime.utcnow()
-        db.session.commit()
+        print(f"🔐 Login attempt for username: {username}")
         
-        session['admin_token'] = session_token
-        flash('Login realizado com sucesso!', 'success')
-        return redirect(url_for('admin_panel'))
-    else:
-        flash('Usuário ou senha incorretos!', 'error')
+        if not username or not password:
+            print("❌ Login failed: missing username or password")
+            flash('Usuário e senha são obrigatórios!', 'error')
+            return redirect(url_for('index'))
+        
+        # Find admin user
+        admin = Admin.query.filter_by(username=username).first()
+        
+        if not admin:
+            print(f"❌ Login failed: user '{username}' not found in database")
+            flash('Usuário ou senha incorretos!', 'error')
+            return redirect(url_for('index'))
+        
+        if admin and check_password_hash(admin.password_hash, password):
+            # SECURITY: Valid login with secure password hash verification
+            print(f"✅ Login successful for user: {username}")
+            session_token = str(uuid.uuid4())
+            expires_at = datetime.utcnow() + timedelta(hours=2)
+            
+            admin_session = AdminSession()
+            admin_session.session_token = session_token
+            admin_session.admin_id = admin.id
+            admin_session.expires_at = expires_at
+            db.session.add(admin_session)
+            
+            # Update last login
+            admin.last_login = datetime.utcnow()
+            db.session.commit()
+            
+            session['admin_token'] = session_token
+            flash('Login realizado com sucesso!', 'success')
+            return redirect(url_for('admin_panel'))
+        else:
+            print(f"❌ Login failed: incorrect password for user '{username}'")
+            flash('Usuário ou senha incorretos!', 'error')
+            return redirect(url_for('index'))
+    except Exception as e:
+        print(f"❌ Critical error in admin_login: {e}")
+        import traceback
+        traceback.print_exc()
+        flash('Erro interno no sistema de login. Tente novamente.', 'error')
         return redirect(url_for('index'))
 
 @app.route('/admin')

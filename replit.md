@@ -8,14 +8,26 @@ The application provides a public-facing website for potential clients to browse
 
 ## Recent Changes
 
-### September 30, 2025 (Latest) - Critical Railway Admin Login Fix
+### September 30, 2025 (Latest) - Railway Admin Login Fix with Enhanced Debugging
 - **FIXED: Railway admin login issue** - The authentication system was only checking for `ADMIN_INITIAL_USERNAME` and `ADMIN_INITIAL_PASSWORD` environment variables
 - Updated `ensure_admin_exists()` function in routes.py to accept BOTH formats:
   - Railway format: `ADMIN_USERNAME` and `ADMIN_PASSWORD` 
   - Alternative format: `ADMIN_INITIAL_USERNAME` and `ADMIN_INITIAL_PASSWORD`
+- **Added comprehensive logging for debugging:**
+  - Environment variable detection and status (which vars are SET vs NOT SET)
+  - Admin creation process with step-by-step confirmation
+  - Login attempt logging with detailed failure reasons
+  - Exception handling with full traceback for any errors
 - Improved login validation to require both username and password fields
 - This fix resolves the login errors on Railway deployment with existing environment variables
-- Note: Image 404/400 errors on Railway are due to filesystem storage (images are stored locally, not in database, and Railway filesystem is ephemeral)
+- **Note:** Image 404/400 errors on Railway are due to filesystem storage (images are stored locally, not in database, and Railway filesystem is ephemeral)
+
+### Debug Instructions for Railway
+When you deploy to Railway, check the logs to see:
+1. **On startup:** Look for messages about environment variables (🔍 Checking environment variables)
+2. **Admin creation:** Check if admin user is being created (✅ Usuário admin criado) or already exists
+3. **On login attempt:** Look for login messages (🔐 Login attempt) and any errors (❌)
+4. The logs will show exactly what's happening and where the error occurs
 
 ### September 30, 2025 (Earlier) - Complete Replit Environment Setup
 - Successfully set up fresh GitHub import in Replit environment
