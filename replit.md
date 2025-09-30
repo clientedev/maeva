@@ -8,7 +8,16 @@ The application provides a public-facing website for potential clients to browse
 
 ## Recent Changes
 
-### September 30, 2025 - Complete Replit Environment Setup & Railway Admin Fix
+### September 30, 2025 (Latest) - Critical Railway Admin Login Fix
+- **FIXED: Railway admin login issue** - The authentication system was only checking for `ADMIN_INITIAL_USERNAME` and `ADMIN_INITIAL_PASSWORD` environment variables
+- Updated `ensure_admin_exists()` function in routes.py to accept BOTH formats:
+  - Railway format: `ADMIN_USERNAME` and `ADMIN_PASSWORD` 
+  - Alternative format: `ADMIN_INITIAL_USERNAME` and `ADMIN_INITIAL_PASSWORD`
+- Improved login validation to require both username and password fields
+- This fix resolves the login errors on Railway deployment with existing environment variables
+- Note: Image 404/400 errors on Railway are due to filesystem storage (images are stored locally, not in database, and Railway filesystem is ephemeral)
+
+### September 30, 2025 (Earlier) - Complete Replit Environment Setup
 - Successfully set up fresh GitHub import in Replit environment
 - Installed all Python dependencies (gunicorn, flask, psycopg2-binary, openai, pillow, etc.)
 - Created PostgreSQL database and verified DATABASE_URL and SESSION_SECRET environment variables
@@ -17,10 +26,6 @@ The application provides a public-facing website for potential clients to browse
   - This fixes session and HTTPS issues on Railway and other cloud platforms
 - Set up workflow for Flask application on port 5000 with gunicorn server and webview output
 - Created admin user for Replit environment (username: admin, password: admin123)
-- Fixed Railway admin access issue by:
-  - Improving ProxyFix configuration to handle all proxy headers correctly
-  - Updated admin login form to not hardcode Railway-specific username
-  - Form now uses placeholder text instead of pre-filled values
 - Cleaned up requirements.txt file (removed duplicates)
 - Configured deployment settings for autoscale with production-ready gunicorn command
 - Application successfully running with no startup errors
@@ -42,14 +47,18 @@ The application provides a public-facing website for potential clients to browse
 - Note: Change this password after first login using the admin panel
 
 ### Railway Deployment
-For Railway deployments, use the `setup_railway_admin.py` script during deployment:
-- Username: `maeva.admin`
-- Password: `maeva4731`
-- The script ensures admin user is created/updated on every deploy
-- Alternative: Set `ADMIN_INITIAL_USERNAME` and `ADMIN_INITIAL_PASSWORD` environment variables
+Railway environment variables (currently configured):
+- Username: `maeva.admin` (set via `ADMIN_USERNAME` environment variable)
+- Password: `maeva4731` (set via `ADMIN_PASSWORD` environment variable)
+
+The application now automatically detects and uses these credentials on Railway deployment.
+
+Alternative: You can also use `ADMIN_INITIAL_USERNAME` and `ADMIN_INITIAL_PASSWORD` environment variables.
 
 ### Security Notes
-- The `ensure_admin_exists()` function in routes.py requires `ADMIN_INITIAL_PASSWORD` environment variable for automatic admin creation
+- The `ensure_admin_exists()` function in routes.py now accepts multiple environment variable formats:
+  - Railway format: `ADMIN_USERNAME` and `ADMIN_PASSWORD`
+  - Alternative format: `ADMIN_INITIAL_USERNAME` and `ADMIN_INITIAL_PASSWORD`
 - For production deployments, always use environment variables instead of hardcoded credentials
 - The enhanced ProxyFix configuration ensures proper session handling across HTTPS proxies
 

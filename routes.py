@@ -594,19 +594,21 @@ def validate_admin_session():
     return admin_session.admin
 
 def ensure_admin_exists():
-    """Check if admin user exists. For security, only creates admin if ADMIN_INITIAL_PASSWORD is explicitly set."""
+    """Check if admin user exists. For security, only creates admin if password is explicitly set via environment."""
     try:
         admin = Admin.query.first()
         if not admin:
-            # Check if initial admin setup is allowed via environment
-            initial_username = os.environ.get('ADMIN_INITIAL_USERNAME', 'maeva')
-            initial_password = os.environ.get('ADMIN_INITIAL_PASSWORD')
+            # Check environment variables - support both formats (Railway and Replit)
+            # Railway uses: ADMIN_USERNAME, ADMIN_PASSWORD
+            # Replit uses: ADMIN_INITIAL_USERNAME, ADMIN_INITIAL_PASSWORD
+            initial_username = os.environ.get('ADMIN_USERNAME') or os.environ.get('ADMIN_INITIAL_USERNAME') or 'admin'
+            initial_password = os.environ.get('ADMIN_PASSWORD') or os.environ.get('ADMIN_INITIAL_PASSWORD')
             
             # Security: Only create admin if password is explicitly provided via environment
             if not initial_password:
                 print("🚨 SETUP REQUIRED: No admin user configured")
-                print("   For security, admin creation requires ADMIN_INITIAL_PASSWORD environment variable")
-                print("   Set ADMIN_INITIAL_PASSWORD and restart the application")
+                print("   For security, admin creation requires ADMIN_PASSWORD or ADMIN_INITIAL_PASSWORD environment variable")
+                print("   Set one of these variables and restart the application")
                 return False
             
             print("⚠️  Nenhum admin encontrado, criando com credenciais do ambiente...")
@@ -636,11 +638,11 @@ def admin_login():
         flash('Erro interno do sistema. Contate o administrador.', 'error')
         return redirect(url_for('index'))
     
-    username = request.form.get('username', 'admin')
+    username = request.form.get('username')
     password = request.form.get('password')
     
-    if not password:
-        flash('Senha é obrigatória!', 'error')
+    if not username or not password:
+        flash('Usuário e senha são obrigatórios!', 'error')
         return redirect(url_for('index'))
     
     # Find admin user
